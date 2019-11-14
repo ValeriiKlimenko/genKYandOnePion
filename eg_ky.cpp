@@ -24,43 +24,53 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 
-    if (argc < 9 || argc > 9)  
-    { 
-cout<<endl;
-	  cerr << " Enter 9 arguments only eg.\"./eg_ky arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8\"" << endl;
-cout<<endl;
-	  cerr << " arg1 is \"KLambda\" or \"KSigma\" or \"Pi0P\" or \"PiN\"" << endl;
-	  cerr << " arg2 is Ebeam, arg3 is Q2min, arg4 is Q2max, arg5 is Wmin, arg6 is Wmax " << endl;
-	  cerr << " arg7 is nEvents, arg8 is outputFileName" << endl;
-cout<<endl;
-	  cerr << " Example: .\"./eg_ky KSigma 11. 2. 11.999 1.5 4.0 5000 lund_KS.lund\"" << endl;
-cout<<endl;
-	  cerr << " STOP!" << endl;
-	  return 1;
-    } 
-  
+    
 
-
-
-        int channel;
+    int channel;
 	string channelName, outputFileName,dataPath;
 	double Ebeam, Q2min, Q2max, Wmin, Wmax;
 	int nEventMax;
-        double jr, mr, gr, a12, a32, s12, onlyres;
+    double jr, mr, gr, a12, a32, s12, onlyres;
 
+    if(argc == 10) {
+        cout << "Running with docker options" << endl;
+    	channelName=argv[4];  
+	    Ebeam=atof(argv[5]);
+	    Q2min=atof(argv[6]);
+	    Q2max=atof(argv[7]);
+	    Wmin=atof(argv[8]);
+	    Wmax=atof(argv[9]);
+	    nEventMax=atoi(argv[2]);
+	    outputFileName="genKYandOnePion.dat";
+    } else if (argc < 9 || argc > 9)  { 
+        cerr<<endl;
+	    cerr << " Enter 9 arguments only eg.\"./eg_ky arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8\"" << endl;
+        cerr<<endl;
+	    cerr << " arg1 is \"KLambda\" or \"KSigma\" or \"Pi0P\" or \"PiN\"" << endl;
+	    cerr << " arg2 is Ebeam, arg3 is Q2min, arg4 is Q2max, arg5 is Wmin, arg6 is Wmax " << endl;
+	    cerr << " arg7 is nEvents, arg8 is outputFileName" << endl;
+        cerr<<endl;
+	    cerr << " Example: .\"./eg_ky KSigma 11. 2. 11.999 1.5 4.0 5000 lund_KS.lund\"" << endl;
+        cerr<<endl;
+	  cerr << " STOP!" << endl;
+	  return 1;
+    } else {
+    	channelName=argv[1];  
+	    Ebeam=atoi(argv[2]);
+	    Q2min=atoi(argv[3]);
+	    Q2max=atoi(argv[4]);
+	    Wmin=atoi(argv[5]);
+	    Wmax=atoi(argv[6]);
+	    nEventMax=atoi(argv[7]);
+	    outputFileName=argv[8];  
+    }
 
-
-	channelName=argv[1];  
-	Ebeam=atoi(argv[2]);
-	Q2min=atoi(argv[3]);
-	Q2max=atoi(argv[4]);
-	Wmin=atoi(argv[5]);
-	Wmax=atoi(argv[6]);
-	nEventMax=atoi(argv[7]);
-	outputFileName=argv[8];  
-	//dataPath=argv[9];  
-
+    if(getenv("DataKYandOnePion") != NULL)
         	dataPath=getenv("DataKYandOnePion");
+    else {
+        cerr << "ERROR! Set DataKYandOnePion environment variable" << endl;
+        return 1;
+    }
 //cout<<"dataPath: "<<dataPath<<endl;
 
 	cout << "\nEvent generator started. " <<  endl;

@@ -35,4 +35,19 @@ To set the parameters use arg1-arg8
 	
 The output will be a lund file with the name that you set in outputFileName variable.
 
+## Online submitions to OSG
+
+For online submissions to the OSG the output file name and number of events are controlled by the online submission form. Because of this the online form should include:
+
+```sh
+type beam_energy Q2min Q2max Wmin Wmax
+```
+
+For example:
+
+```sh
+KSigma 11. 2. 11.999 1.5 4.0
+```
+
+
 Contact: valerii@jlab.org
