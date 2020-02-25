@@ -11,11 +11,11 @@ Using (if you are using executable file skip following steps: 2-4):
 
 1) install root (https://root.cern.ch/building-root) or type command: use root/6.10.02
 2) git clone of the EG: git clone https://github.com/ValeriiKlimenko/genKYandOnePion/ 
-3) Then type command: chmod +x COMPILE_eg_ky
-4) To compile: ./COMPILE_eg_ky
+3) Then type command: chmod +x COMPILE_gen
+4) To compile: ./COMPILE_gen
 5) setenv DataKYandOnePion /WAY/TO/THE/DATA/FOLDER
 
-6) to run exe file: ./eg_ky arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8
+6) to run exe file: ./genKYandOnePion arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8
 
 To set the parameters use arg1-arg8
  Its format is as follows.
@@ -30,7 +30,7 @@ To set the parameters use arg1-arg8
  - arg7 is the number of events to be generated.
  - arg8 is the name of the output file.
  
- An example: ./eg_ky KSigma 11. 2. 11.999 1.5 4.0 5000 lund_KS.lund
+ An example: ./genKYandOnePion KSigma 11. 2. 11.999 1.5 4.0 5000 lund_KS.lund
 	
 The output will be a lund file with the name that you set in outputFileName variable.
 
