@@ -1,0 +1,2 @@
+g++ -pipe -o genKYandOnePion genKYandOnePion.cpp \
+    -g `root-config --cflags --glibs` -O3
