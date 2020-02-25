@@ -41,7 +41,7 @@ double inline getomegastar(double Q2, double W)
 
 
 double getKH(double Q2, double W) {
-   getomega(Q2, W) - (Q2/2./massProton);
+   return getomega(Q2, W) - (Q2/2./massProton);
 }
 
 

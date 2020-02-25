@@ -298,6 +298,7 @@ if (d5sigmaMax==0){cout<<"incorrect kinematic region, pls check input Q2 and Ene
 
 			return CS;
 			}
+			return 0.;
 		}
 		
 		double Sigma::get_CS(double Q,double W, double costeta, double fi, double Ebeam)
@@ -341,6 +342,7 @@ if (d5sigmaMax==0){cout<<"incorrect kinematic region, pls check input Q2 and Ene
 			if ((type_chanel==2)&&(real_W>1.752)&&(real_W<1.775)) return 1.02*CS;
 			return CS;
 			}
+			return 0;
 		}
 
 		double Sigma::get_CS_int_fi(double Q, double W, double costeta, double Ebeam)
@@ -998,6 +1000,7 @@ double Sigma::porog_ch(int num_chanel){//1-KL 2-KS 3-Pi0P 4-PiN
 		case 4: return massPion+massNeutron; break;
 		defult: cout<<" uncorrect param for calc porog energy"<<endl;
 	}
+	return 0;
 }
 
 double  Sigma::getK(double Q, double W){
@@ -1108,6 +1111,8 @@ double Sigma::lineal_interp_1(double x_r, vector<double> x,vector<double> y,int 
 		}
 		if (abs(x[i]-x_r)<0.0001) {start_point_x=i; return y[i];}
 	}
+	
+	return 0;
 }
 
 double Sigma::interpol(double Q, double W, double fi, vector<double> Q_F1, vector<double> W_F1,
@@ -1372,7 +1377,7 @@ double Sigma::int_get_d5CS(double Q,double W, double Ebeam){
   cache2+=0.02*dsigma_dcos(Ebeam,Q,W,cos);
  } 
  //cout<<cache2<<endl;
-return cache2;
+	return cache2;
 }
 double Sigma::get_d5CS(double Q,double W, double cos, double fi, double Ebeam){
  if (range_fi==1){
@@ -1478,6 +1483,7 @@ double Sigma::get_d5CS(double Q,double W, double cos, double fi, double Ebeam){
 
  if (test_Q2==2) {cout<<"there is an error in connection CS in the two part of CS"<<endl; return 0; }
  cout<<" error at low Q2, i dont know why"<<endl;
+ return 0;
 }
 
 double Sigma::get_d4CS(double Q,double W, double cos, double Ebeam){
@@ -1535,6 +1541,7 @@ if ((test_W==3)&&(test_Q2==0)) {
 	}//max and photo then lin plus Q2 lineal
 	if (test_Q2==2) {cout<<"there is an error in connection CS in the two part of CS"<<endl; return 0; }
 	cout<<" error at low Q2, i dont know why"<<endl;
+	return 0;
 }
 
 double Sigma::getCS_d3CS(double Q,double W, double Ebeam){
@@ -1603,7 +1610,7 @@ if ((test_W==3)&&(test_Q2==0)) {
 		tmp_val2=tmp_val2*tmp_val1/tmp_val3;
 		return lin_interp(Q,0,Qmin,tmp_val0,tmp_val2);
 	}//max and photo then lin plus Q2 lineal
-	
+	return 0;
 }
 
 
@@ -1799,6 +1806,7 @@ double Sigma::get_CS_ph(double W, double cos){
 		return tmp2*get_CS_ph_int_Ev(W)/get_CS_ph_int(W);
 	}
 	cout<<"ERROR in ph inter num 0"<<endl;
+	return 0;
 }
 double Sigma::get_CS_ph_int(double W){
 	int tmp0=range_ph(W);
@@ -1812,6 +1820,7 @@ double Sigma::get_CS_ph_int(double W){
 		return tmp2;
 	}
 	cout<<"ERROR in ph inter int num 0"<<endl;
+	return 0;
 }
 double Sigma::get_CS_ph_int_Ev(double W){
 	int tmp0=range_ph(W);
@@ -1825,6 +1834,7 @@ double Sigma::get_CS_ph_int_Ev(double W){
 		return tmp2;
 	}
 	cout<<"ERROR in ph inter int num 0"<<endl;
+	return 0;
 }
 double Sigma::cos_in_ph(int sp, double cos){
 	for (int i=sp;W_vec_ph[i]==W_vec_ph[sp];i++){
@@ -1927,11 +1937,13 @@ double Sigma::ph_int_int(double W){
 		if (W==_W_ph[i]) {return _CS_ph[i];}
 		if ((W>_W_ph[i])&&(W<_W_ph[i+1])) return lin_interp(W,_W_ph[i],_W_ph[i+1],_CS_ph[i],_CS_ph[i+1]);
 	}
+	return 0;
 }
 double Sigma::ph_int_int_Ev(double W){
 	for(int i=0;i<n_str_Ev;i++){
 		if (W==_W_ph_Ev[i]) {return _CS_ph_Ev[i];}
 		if ((W>_W_ph_Ev[i])&&(W<_W_ph_Ev[i+1])) return lin_interp(W,_W_ph_Ev[i],_W_ph_Ev[i+1],_CS_ph_Ev[i],_CS_ph_Ev[i+1]);
 	}
+	return 0;
 }
 #endif 
