@@ -3,10 +3,10 @@ ROOTLIBS     := $(shell root-config --libs)
 ROOTINCLUDE  := -I$(shell root-config --incdir)
 
 
-all: eg_ky
+all: genKYandOnePion
 
 eg_ky:
-	$(CXX) -O3 $(ROOTINCLUDE) $(ROOTCFLAGS) -o eg_ky eg_ky.cpp $(ROOTLIBS)
+	$(CXX) -O3 $(ROOTINCLUDE) $(ROOTCFLAGS) -o genKYandOnePion genKYandOnePion.cpp $(ROOTLIBS)
 
 clean:
-	rm -rf eg_ky
+	rm -rf genKYandOnePion
