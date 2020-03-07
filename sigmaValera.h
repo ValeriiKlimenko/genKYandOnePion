@@ -35,7 +35,7 @@ bool check_input_data(string dataPath, string __channelName,double __Ebeam, doub
  if ((__Q2max>12)||(__Q2max<0)){
   cout<<"incorrect Q2_max, Q2_max<=12"<< endl;
   return 0;}
- if (__Wmax>4){cout<<"incorrect W_max, try less than 4 GeV ;"<< endl; return 0;}
+ if (__Wmax>5.){cout<<"incorrect W_max, try less than 5 GeV ;"<< endl; return 0;}
 
 
  ifstream interp_right;

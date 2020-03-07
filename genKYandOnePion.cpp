@@ -44,23 +44,23 @@ int main(int argc, char *argv[])
 	    outputFileName="genKYandOnePion.dat";
     } else if (argc < 9 || argc > 9)  { 
         cerr<<endl;
-	    cerr << " Enter 9 arguments only eg.\"./eg_ky arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8\"" << endl;
+	    cerr << " Enter 8 arguments only eg.\"./genKYandOnePion arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8\"" << endl;
         cerr<<endl;
 	    cerr << " arg1 is \"KLambda\" or \"KSigma\" or \"Pi0P\" or \"PiN\"" << endl;
 	    cerr << " arg2 is Ebeam, arg3 is Q2min, arg4 is Q2max, arg5 is Wmin, arg6 is Wmax " << endl;
 	    cerr << " arg7 is nEvents, arg8 is outputFileName" << endl;
         cerr<<endl;
-	    cerr << " Example: .\"./eg_ky KSigma 11. 2. 11.999 1.5 4.0 5000 lund_KS.lund\"" << endl;
+	    cerr << " Example: .\"./genKYandOnePion KSigma 11. 2. 11.999 1.5 4.0 5000 lund_KS.lund\"" << endl;
         cerr<<endl;
 	  cerr << " STOP!" << endl;
 	  return 1;
     } else {
     	channelName=argv[1];  
-	    Ebeam=atoi(argv[2]);
-	    Q2min=atoi(argv[3]);
-	    Q2max=atoi(argv[4]);
-	    Wmin=atoi(argv[5]);
-	    Wmax=atoi(argv[6]);
+	    Ebeam=atof(argv[2]);
+	    Q2min=atof(argv[3]);
+	    Q2max=atof(argv[4]);
+	    Wmin=atof(argv[5]);
+	    Wmax=atof(argv[6]);
 	    nEventMax=atoi(argv[7]);
 	    outputFileName=argv[8];  
     }
@@ -108,7 +108,12 @@ int main(int argc, char *argv[])
 //	input.close();
 
 
-
+	if(Wmax>4){
+		Wmax=4; 
+		cout<<"the maxium W value, that can be used in this EG is 4 GeV. So the Wmax is set to be 4 GeV"<<endl;
+		cout << "!!! new Wmax is " << Wmax << " Gev"<<endl;
+		cout<<endl;
+	}
 	bool check_in_data=check_input_data(dataPath,channelName,Ebeam,Q2min,Q2max,Wmin,Wmax,nEventMax);
 	if (check_in_data==0) {return 0;}
 
