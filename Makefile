@@ -5,7 +5,7 @@ ROOTINCLUDE  := -I$(shell root-config --incdir)
 
 all: genKYandOnePion
 
-eg_ky:
+genKYandOnePion:
 	$(CXX) -O3 $(ROOTINCLUDE) $(ROOTCFLAGS) -o genKYandOnePion genKYandOnePion.cpp $(ROOTLIBS)
 
 clean:
