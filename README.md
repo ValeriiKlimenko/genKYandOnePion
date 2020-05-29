@@ -28,21 +28,20 @@ Options:
 --q2max is Q2 min in GeV2 >0.01 and less then 12 GeV2 (default value is 11 GeV2)
 This is the range in Q2, where the events will be generated.
 
---w_min is W min value in GeV. wmin>0,  if Wmin less than treshold, treshold value will be used. (default value is threshold GeV2) 
+--w_min is W min value in GeV. wmin should be >0,  if Wmin less than treshold, treshold value will be used. (default value is threshold GeV) 
 
---w_max is W min value in GeV less than 4 GeV.
+--w_max is W min value in GeV less than 4 GeV. (default value is 4 GeV)
 
---triger is number of events to generate >0
+--triger is number of events to generate >0  (default value is 100000)
 
---outname is the name of the output file.
+--outname is the name of the output file. (default value is genKYandOnePion.dat)
 
 An example of all options use:
 
-./genKYandOnePion --channel KLambda --ebeam=10.6 --q2min=0.5 --q2max=11 --w_min=0.7 --w_max=3.7 --triger=5000 --outname=result.dat
-
+./genKYandOnePion --channel=KLambda --ebeam=10.6 --q2min=0.5 --q2max=11 --w_min=0.7 --w_max=3.7 --triger=5000 --outname=result.dat
 
 	
-The output will be a lund file with the name that you set in outputFileName variable.
+The output will be a lund file with the name that you set in outname option (genKYandOnePion.dat is default).
 
 ## Online submitions to OSG
 
