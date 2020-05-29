@@ -17,22 +17,166 @@
 #include "kinematics.h"
 #include "evGenerator.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <getopt.h>
 
 using namespace std;
 
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 
+  int channel;
+	string channelName="", outputFileName="genKYandOnePion.dat",dataPath;
+	double Ebeam=10.6, Q2min=0.05, Q2max=11., Wmin=1., Wmax=4.;
+	int nEventMax=100000;
+    double jr, mr, gr, a12, a32, s12, onlyres;
+    
+  
+    char* short_options = (char*)"a:b:c:d:e:f:g:h:";
+    const struct option long_options[] = {
+        {"channel",required_argument,NULL,'a'},
+        {"ebeam",required_argument,NULL,'b'},
+        {"q2min",required_argument,NULL,'c'},
+        {"q2max",required_argument,NULL,'d'},
+        {"w_min",required_argument,NULL,'e'},
+        {"w_max",required_argument,NULL,'f'},
+        {"triger",required_argument,NULL,'g'},
+        {"outname",required_argument,NULL,'j'},
+        {NULL,0,NULL,0}
+    };
+
+		int rez;
+		int option_index;
+		
+		cout<<'\n';
+
+   while ((rez=getopt_long(argc,argv,short_options,
+		long_options,&option_index))!=-1){
+
+		switch(rez){
+			case 'h': {
+				printf("This is demo help. Try -h or --help.\n");
+				break;
+			};
+			case 'a': {
+				if (optarg!=NULL){
+					cout<<"channel is set to "<<optarg<<endl;
+					channelName=optarg;
+				}
+				else
+					printf("ERROR: found channel without value\n");
+				break;
+			};
+	
+			case 'b': {
+				if (optarg!=NULL){
+					cout<<"ebeam is set to "<<optarg<<" GeV"<<endl;
+					Ebeam=atof(optarg);
+				}
+				else{
+					printf("found ebeam without value\n");
+					cout<<"default value will be used"<<endl;
+					}
+				break;
+			};
+			
+			case 'c': {
+				if (optarg!=NULL){
+					cout<<"q2min is set to "<<optarg<<" GeV2"<<endl;
+					Q2min=atof(optarg);
+				}
+				else{
+					printf("found q2min without value\n");
+					cout<<"default value will be used"<<endl;
+					}
+				break;
+			};
+			
+			case 'd': {
+				if (optarg!=NULL){
+					cout<<"q2max is set to "<<optarg<<" GeV2"<<endl;
+					Q2max=atof(optarg);
+				}
+				else{
+					printf("found q2max without value\n");
+					cout<<"default value will be used"<<endl;
+					}
+				break;
+			};
+			
+			case 'e': {
+				if (optarg!=NULL){
+					cout<<"w_min is set to "<<optarg<<" GeV"<<endl;
+					Wmin=atof(optarg);
+				}
+				else{
+					printf("found w_min without value\n");
+					cout<<"default value will be used"<<endl;
+					}
+				break;
+			};
+			
+			case 'f': {
+				if (optarg!=NULL){
+					cout<<"w_max is set to "<<optarg<<" GeV"<<endl;
+					Wmax=atof(optarg);
+				}
+				else{
+					printf("found w_max without value\n");
+					cout<<"default value will be used"<<endl;
+					}
+				break;
+			};
+			
+			case 'g': {
+				if (optarg!=NULL){
+					cout<<"triger(number of events) is set to "<<optarg<<" events"<<endl;
+					nEventMax=atoi(optarg);
+				}
+				else{
+					printf("triger(number of events) without value\n");
+					cout<<"default value will be used"<<endl;
+					}
+				break;
+			};
+			
+			case 'j': {
+				if (optarg!=NULL){
+					cout<<"outname (name of output file) is set to "<<optarg<<endl;
+					outputFileName=(string)optarg;
+				}
+				else{
+					printf("outname (name of output file) without value\n");
+					cout<<"default value will be used"<<endl;
+					}
+				break;
+			};
+			
+			case '?': default: {
+				printf("found unknown option\n");
+				break;
+			};
+		};
+	};
+    
+  if (!(channelName=="KLambda" || channelName=="KSigma" || channelName=="Pi0P" 
+  			|| channelName=="PiN")) {
+  cout<<"\nERROR: Chanel name is wrong. Please use option --channel=KLambda or (KSigma,Pi0P and PiN)\n ";
+  return 1;
+  }
+  cout<<'\n'<<"End of option reading\n";
+    
+    
+    
+    
+    
+    
     
 
-    int channel;
-	string channelName, outputFileName,dataPath;
-	double Ebeam, Q2min, Q2max, Wmin, Wmax;
-	int nEventMax;
-    double jr, mr, gr, a12, a32, s12, onlyres;
-
-    if(argc == 10) {
+////////////////////////////////////////////
+/*    if(argc == 10) {
         cout << "Running with docker options" << endl;
     	channelName=argv[4];  
 	    Ebeam=atof(argv[5]);
@@ -42,19 +186,7 @@ int main(int argc, char *argv[])
 	    Wmax=atof(argv[9]);
 	    nEventMax=atoi(argv[2]);
 	    outputFileName="genKYandOnePion.dat";
-    } else if (argc < 9 || argc > 9)  { 
-        cerr<<endl;
-	    cerr << " Enter 8 arguments only eg.\"./genKYandOnePion arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8\"" << endl;
-        cerr<<endl;
-	    cerr << " arg1 is \"KLambda\" or \"KSigma\" or \"Pi0P\" or \"PiN\"" << endl;
-	    cerr << " arg2 is Ebeam, arg3 is Q2min, arg4 is Q2max, arg5 is Wmin, arg6 is Wmax " << endl;
-	    cerr << " arg7 is nEvents, arg8 is outputFileName" << endl;
-        cerr<<endl;
-	    cerr << " Example: .\"./genKYandOnePion KSigma 11. 2. 11.999 1.5 4.0 5000 lund_KS.lund\"" << endl;
-        cerr<<endl;
-	  cerr << " STOP!" << endl;
-	  return 1;
-    } else {
+    } else if(argc == 9){
     	channelName=argv[1];  
 	    Ebeam=atof(argv[2]);
 	    Q2min=atof(argv[3]);
@@ -63,7 +195,7 @@ int main(int argc, char *argv[])
 	    Wmax=atof(argv[6]);
 	    nEventMax=atoi(argv[7]);
 	    outputFileName=argv[8];  
-    }
+    }*/
 
     if(getenv("DataKYandOnePion") != NULL)
         	dataPath=getenv("DataKYandOnePion");

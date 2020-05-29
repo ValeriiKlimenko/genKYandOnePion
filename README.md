@@ -15,22 +15,32 @@ Using (if you are using executable file skip following steps: 2-4):
 4) To compile: ./COMPILE_gen
 5) setenv DataKYandOnePion /WAY/TO/THE/DATA/FOLDER
 
-6) to run exe file: ./genKYandOnePion arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8
+6) run exe file: ./genKYandOnePion --channel=(here should be channel name)
 
-To set the parameters use arg1-arg8
- Its format is as follows.
- - arg1 is the string "KLambda" or "KSigma" or "Pi0P" or "PiN"
- - arg2 is Ebeam that should be >0 and less than 12GeV (Energy of the beam)
- - arg3 and arg4 contain two numbers Q2min and Q2max.
-   This is the range in Q2, where the events will be generated.
- - arg5 and arg6 are two numbers Wmin and Wmax.
-   This is the range in W, where the events will be generated.
-   Wmin more then zero (GeV); (if Wmin less than treshold, treshold value will be used)
-   Wmax less then 4 GeV;
- - arg7 is the number of events to be generated.
- - arg8 is the name of the output file.
- 
- An example: ./genKYandOnePion KSigma 11. 2. 11.999 1.5 4.0 5000 lund_KS.lund
+Options:
+
+--channel is chanel name "KLambda" or "KSigma" or "Pi0P" or "PiN" (No default value!)
+
+--ebeam is Ebeam that should be >0 and less than 12GeV (Energy of the beam) (default value is 10.6 GeV)
+
+--q2min is Q2 min in GeV2 is more than 0.01 and less than 12 GeV2 (default value is 0.05 GeV2)
+
+--q2max is Q2 min in GeV2 >0.01 and less then 12 GeV2 (default value is 11 GeV2)
+This is the range in Q2, where the events will be generated.
+
+--w_min is W min value in GeV. wmin>0,  if Wmin less than treshold, treshold value will be used. (default value is threshold GeV2) 
+
+--w_max is W min value in GeV less than 4 GeV.
+
+--triger is number of events to generate >0
+
+--outname is the name of the output file.
+
+An example of all options use:
+
+./genKYandOnePion --channel KLambda --ebeam=10.6 --q2min=0.5 --q2max=11 --w_min=0.7 --w_max=3.7 --triger=5000 --outname=result.dat
+
+
 	
 The output will be a lund file with the name that you set in outputFileName variable.
 
@@ -38,15 +48,8 @@ The output will be a lund file with the name that you set in outputFileName vari
 
 For online submissions to the OSG the output file name and number of events are controlled by the online submission form. Because of this the online form should include:
 
-```sh
-type beam_energy Q2min Q2max Wmin Wmax
-```
 
-For example:
-
-```sh
-KSigma 11. 2. 11.999 1.5 4.0
-```
+?????
 
 
 Contact: valerii@jlab.org
