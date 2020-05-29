@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
         {"q2max",required_argument,NULL,'d'},
         {"w_min",required_argument,NULL,'e'},
         {"w_max",required_argument,NULL,'f'},
-        {"triger",required_argument,NULL,'g'},
+        {"trig",required_argument,NULL,'g'},
         {"outname",required_argument,NULL,'j'},
         {NULL,0,NULL,0}
     };
@@ -132,11 +132,11 @@ int main(int argc, char *argv[]) {
 			
 			case 'g': {
 				if (optarg!=NULL){
-					cout<<"triger(number of events) is set to "<<optarg<<" events"<<endl;
+					cout<<"trig (number of events) is set to "<<optarg<<" events"<<endl;
 					nEventMax=atoi(optarg);
 				}
 				else{
-					printf("triger(number of events) without value\n");
+					printf("trig (number of events) without value\n");
 					cout<<"default value will be used"<<endl;
 					}
 				break;
