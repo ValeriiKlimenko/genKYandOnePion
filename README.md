@@ -9,13 +9,17 @@ Need to define the path for the data files using env variable DataKYandOnePion t
 
 Using (if you are using executable file skip following steps: 2-4):
 
-1) install root (https://root.cern.ch/building-root) or type command: use root/6.10.02
+1) install root (https://root.cern.ch/building-root) or type command(it is an example): use root/6.10.02
 2) git clone of the EG: git clone https://github.com/ValeriiKlimenko/genKYandOnePion/ 
 3) Then type command: chmod +x COMPILE_gen
 4) To compile: ./COMPILE_gen
 5) setenv DataKYandOnePion /WAY/TO/THE/DATA/FOLDER
 
+An example: setenv DataKYandOnePion data
+
 6) run exe file: ./genKYandOnePion --channel=(here should be channel name)
+
+An example: ./genKYandOnePion --channel=KLambda
 
 Options:
 
