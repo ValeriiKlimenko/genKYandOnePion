@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
 
   int channel;
 	string channelName="", outputFileName="genKYandOnePion.dat",dataPath;
-	double Ebeam=10.6, Q2min=0.05, Q2max=11., Wmin=1., Wmax=4.;
+	double Ebeam=10.6, Q2min=0.05, Q2max=5., Wmin=1., Wmax=4.;
 	int nEventMax=100000;
     double jr, mr, gr, a12, a32, s12, onlyres;
     
