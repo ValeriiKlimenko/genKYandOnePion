@@ -11,9 +11,10 @@ Using (if you are using executable file skip following steps: 2-4):
 
 1) install root (https://root.cern.ch/building-root) or type command(it is an example): use root/6.10.02
 2) git clone of the EG: git clone https://github.com/ValeriiKlimenko/genKYandOnePion/ 
-3) Then type command: chmod +x COMPILE_gen
-4) To compile: ./COMPILE_gen
-5) setenv DataKYandOnePion /WAY/TO/THE/DATA/FOLDER
+3) go to the directory: cd genKYandOnePion/
+4) Then type command: chmod +x COMPILE_gen
+5) To compile: ./COMPILE_gen
+6) Set enviroment varible(In tcsh): setenv DataKYandOnePion /WAY/TO/THE/DATA/FOLDER
 
 An example: setenv DataKYandOnePion data
 
@@ -29,7 +30,7 @@ Options:
 
 --q2min is Q2 min in GeV2 is more than 0.01 and less than 12 GeV2 (default value is 0.05 GeV2)
 
---q2max is Q2 min in GeV2 >0.01 and less then 12 GeV2 (default value is 11 GeV2)
+--q2max is Q2 min in GeV2 >0.01 and less then 12 GeV2 (default value is 5 GeV2)
 This is the range in Q2, where the events will be generated.
 
 --w_min is W min value in GeV. wmin should be >0,  if Wmin less than treshold, treshold value will be used. (default value is threshold GeV) 
