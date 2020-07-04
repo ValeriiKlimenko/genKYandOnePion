@@ -29,12 +29,12 @@ int main(int argc, char *argv[]) {
 
   int channel;
 	string channelName="", outputFileName="genKYandOnePion.dat",dataPath;
-	double Ebeam=10.6, Q2min=0.05, Q2max=5., Wmin=1., Wmax=4.;
+	double Ebeam=10.6, Q2min=0.05, Q2max=5., Wmin=1., Wmax=4.,V_z_min=0.,V_z_max=0.;
 	int nEventMax=100000;
     double jr, mr, gr, a12, a32, s12, onlyres;
     
   
-    char* short_options = (char*)"a:b:c:d:e:f:g:h:";
+    char* short_options = (char*)"a:b:c:d:e:f:g:h:i:j:k:";
     const struct option long_options[] = {
         {"channel",required_argument,NULL,'a'},
         {"ebeam",required_argument,NULL,'b'},
@@ -43,7 +43,9 @@ int main(int argc, char *argv[]) {
         {"w_min",required_argument,NULL,'e'},
         {"w_max",required_argument,NULL,'f'},
         {"trig",required_argument,NULL,'g'},
-        {"outname",required_argument,NULL,'j'},
+        {"v_z_min",required_argument,NULL,'i'},
+        {"v_z_max",required_argument,NULL,'j'},
+        {"outname",required_argument,NULL,'k'},
         {NULL,0,NULL,0}
     };
 
@@ -142,7 +144,32 @@ int main(int argc, char *argv[]) {
 				break;
 			};
 			
+			case 'i': {
+				if (optarg!=NULL){
+					cout<<"min Vertex-z is set to "<<optarg<<" cm"<<endl;
+					V_z_min=atof(optarg);
+				}
+				else{
+					printf("min Vertex-z without value\n");
+					cout<<"default value (zero) will be used"<<endl;
+					}
+				break;
+			};
+			
+			
 			case 'j': {
+				if (optarg!=NULL){
+					cout<<"max Vertex-z is set to "<<optarg<<" cm"<<endl;
+					V_z_max=atof(optarg);
+				}
+				else{
+					printf("max Vertex-z without value\n");
+					cout<<"default value (zero) will be used"<<endl;
+					}
+				break;
+			};
+			
+			case 'k': {
 				if (optarg!=NULL){
 					cout<<"outname (name of output file) is set to "<<optarg<<endl;
 					outputFileName=(string)optarg;
@@ -224,12 +251,21 @@ int main(int argc, char *argv[]) {
 	cout << " Configuration file is " << fName << endl;
 	input >> Ebeam >> Q2min >> Q2max >> Wmin >> Wmax >> nEventMax;
 */
+
+	if (V_z_min>V_z_max) swap(V_z_min,V_z_max);
+
+	cout<<" Input parameters: "<<endl;
 	cout << " Channel is " << channelName << endl;
 	cout << " Ebeam is " << Ebeam << " Gev"<<endl;
 	cout << " Q2min is " << Q2min << " Gev2"<<endl;
 	cout << " Q2max is " << Q2max << " Gev2"<<endl;
 	cout << " Wmin is " << Wmin << " Gev"<<endl;
 	cout << " Wmax is " << Wmax << " Gev"<<endl;
+	
+	cout << " Vertex-z min: " << V_z_min << " cm"<<endl;
+	cout << " Vertex-z max: " << V_z_max << " cm"<<endl;
+	
+	
 	cout << " nEvents is " << nEventMax << endl;
 //	input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 //	std::getline(input,outputFileName); outputFileName.erase(remove(outputFileName.begin(),outputFileName.end(),' '),outputFileName.end());
@@ -258,6 +294,7 @@ int main(int argc, char *argv[]) {
 	     << " Beam energy: " << Ebeam << endl
 	     << " Q2 range: " << Q2min <<"  "<< Q2max << ";  "  
 	     << " W range: "  << Wmin  <<"  "<< Wmax << ";  " << endl
+	     << " Vertex-z range: "  << V_z_min  <<"  "<< V_z_max << ";  " << endl
 	     << "   Number of events " << nEventMax << endl; 
 	     
  
@@ -279,6 +316,15 @@ int main(int argc, char *argv[]) {
           // output in lund format
 	  // header
 	  //output << "4 1 1 0 0 0 0 "
+	  
+	 // V-z calculating:
+	 double vz_for_event=V_z_max;
+	 if ((V_z_max-V_z_min)>0.01){
+	 	vz_for_event=V_z_min + (V_z_max-V_z_min) * 	
+	 					(static_cast<double> (rand())/static_cast<double>(RAND_MAX));
+	 }
+	  
+	  
 	output << "3 1 1 0 0 0 0 "
 	         <<" "<< W <<" "<< Q2 <<" "<< getomega(Q2, W) 
 		 << endl;
@@ -287,7 +333,8 @@ int main(int argc, char *argv[]) {
 	    << "1 -1 1 " << lundIdElectron << " 0 0 "
 	    << Pefin.Px() <<" "<< Pefin.Py() <<" "<< Pefin.Pz() 
 	    <<" "<< Pefin.E() <<" 0.0005"
-	    <<" 0 0 0 "
+	   // <<" 0 0 0 "
+	    << " 0 0 "<<vz_for_event<<" "
 	    << endl;
 
 	if (channel==1){
@@ -296,7 +343,8 @@ int main(int argc, char *argv[]) {
 	    << "2 1 1 " << lundIdKaonPlus << " 0 0 "
 	    << PK.Px() <<" "<< PK.Py() <<" "<< PK.Pz() 
 	    <<" "<< PK.E() <<" 0.4936"
-	    <<" 0 0 0 "
+	   // <<" 0 0 0 "
+	    << " 0 0 "<<vz_for_event<<" "
 	    << endl;
 
 	  output 
@@ -304,7 +352,8 @@ int main(int argc, char *argv[]) {
 	<< "3 0 1 " << lundIdLambda << " 0 0 "
 	    << PL.Px() <<" "<< PL.Py() <<" "<< PL.Pz() 
 	    <<" "<< PL.E() <<" 1.115"
-	    <<" 0 0 0 "
+	   // <<" 0 0 0 "
+	    << " 0 0 "<<vz_for_event<<" "
 	    << endl;
 	}
 
@@ -314,14 +363,16 @@ int main(int argc, char *argv[]) {
 	    << "2 1 1 " << lundIdKaonPlus << " 0 0 "
 	    << PK.Px() <<" "<< PK.Py() <<" "<< PK.Pz() 
 	    <<" "<< PK.E() <<" 0.4936"
-	    <<" 0 0 0 "
+	   // <<" 0 0 0 "
+	    << " 0 0 "<<vz_for_event<<" "
 	    << endl;
 
 	  output 
 	    << "3 0 1 " << lundIdSigmaZero << " 0 0 "
 	    << PL.Px() <<" "<< PL.Py() <<" "<< PL.Pz() 
 	    <<" "<< PL.E() <<" 1.192"
-	    <<" 0 0 0 "
+	   // <<" 0 0 0 "
+	    << " 0 0 "<<vz_for_event<<" "
 	    << endl;
 	}
 
@@ -331,14 +382,16 @@ int main(int argc, char *argv[]) {
 	    << "2 0 1 " << lundIdPiZero << " 0 0 "
 	    << PK.Px() <<" "<< PK.Py() <<" "<< PK.Pz() 
 	    <<" "<< PK.E() <<" 0.134"
-	    <<" 0 0 0 "
+	   // <<" 0 0 0 "
+	    << " 0 0 "<<vz_for_event<<" "
 	    << endl;
 
 	  output 
 	    << "3 1 1 " << lundIdProton << " 0 0 "
 	    << PL.Px() <<" "<< PL.Py() <<" "<< PL.Pz() 
 	    <<" "<< PL.E() <<" 0.9382"
-	    <<" 0 0 0 "
+	   // <<" 0 0 0 "
+	    << " 0 0 "<<vz_for_event<<" "
 	    << endl;
 	}
 
@@ -348,14 +401,16 @@ int main(int argc, char *argv[]) {
 	    << "2 1 1 " << lundIdPiPlus << " 0 0 "
 	    << PK.Px() <<" "<< PK.Py() <<" "<< PK.Pz() 
 	    <<" "<< PK.E() <<" 0.1395"
-	    <<" 0 0 0 "
+	   // <<" 0 0 0 "
+	    << " 0 0 "<<vz_for_event<<" "
 	    << endl;
 
 	  output 
 	    << "3 0 1 " << lundIdNeutron << " 0 0 "
 	    << PL.Px() <<" "<< PL.Py() <<" "<< PL.Pz() 
 	    <<" "<< PL.E() <<" 0.939"
-	    <<" 0 0 0 "
+	   // <<" 0 0 0 "
+	    << " 0 0 "<<vz_for_event<<" "
 	    << endl;
 	}
 

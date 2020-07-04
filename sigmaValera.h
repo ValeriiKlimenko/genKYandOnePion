@@ -65,17 +65,17 @@ class Sigma{
  int range_cos=-1;//1: == 2: n !=
 ////////////////////////Q2 extrapolation 5-12 GeV2 functions:////////////////////////
  double getK(double Q, double W);
- double fun_points(double Q, double W, vector<double> Q_F1, vector<double> W_F1, vector<double> F1_F1,int num_str);
+ double fun_points(double Q, double W, const vector<double>& Q_F1, const vector<double>& W_F1, const vector<double>& F1_F1,int num_str);
  double anti_Fit(double fi, double p0,double p1,double p2)
 		{return p0+p1*cos(2*fi/57.29578049)+p2*cos(fi/57.29578049);}
 
- double lineal_interp_1(double x_r, vector<double> x,vector<double> y,int num_str);
+ double lineal_interp_1(double x_r, const vector<double>& x,const vector<double>& y,int num_str);
 
- double interpol(double Q, double W, double fi, vector<double> Q_F1, vector<double> W_F1,
-    vector<double> p0_Qmax, vector<double> p1_Qmax, vector<double> p2_Qmax,double num_str);
+ double interpol(double Q, double W, double fi, const vector<double>& Q_F1, const vector<double>& W_F1,
+    const vector<double>& p0_Qmax, const vector<double>& p1_Qmax, const vector<double>& p2_Qmax,double num_str);
 
  double getCS_fit(double Ebeam, double Q, double Qmax,double W, 
-    vector<double> Q_F1, vector<double> W_F1, vector<double> F1_F1,double num_str);
+   const vector<double>& Q_F1, const vector<double>& W_F1, const vector<double>&F1_F1,double num_str);
 			//,vector<double> Q_F2, vector<double> W_F2, vector<double> F2_F2,double num_str2);
  double check_input_param(double Q,double W, double Ebeam);
  double check_cos(double costeta, double W);
@@ -1009,7 +1009,7 @@ double  Sigma::getK(double Q, double W){
 	return K;
 }
 
-double Sigma::fun_points(double Q, double W, vector<double> Q_F1, vector<double> W_F1, vector<double> F1_F1,int num_str){
+double Sigma::fun_points(double Q, double W, const vector<double>& Q_F1, const vector<double>& W_F1, const vector<double>& F1_F1,int num_str){
 	double start_point_Q=-1;
 	int num_interp=2,only_one=0;
 
@@ -1099,7 +1099,7 @@ double Sigma::fun_points(double Q, double W, vector<double> Q_F1, vector<double>
 	return 0;
 
 }
-double Sigma::lineal_interp_1(double x_r, vector<double> x,vector<double> y,int num_str){
+double Sigma::lineal_interp_1(double x_r, const vector<double>& x,const vector<double>& y,int num_str){
 	int start_point_x=-1;
 
 	for (int i=0;i<num_str;i++)
@@ -1115,8 +1115,8 @@ double Sigma::lineal_interp_1(double x_r, vector<double> x,vector<double> y,int 
 	return 0;
 }
 
-double Sigma::interpol(double Q, double W, double fi, vector<double> Q_F1, vector<double> W_F1,
-			 vector<double> p0_Qmax, vector<double> p1_Qmax, vector<double> p2_Qmax,double num_str)
+double Sigma::interpol(double Q, double W, double fi, const vector<double>& Q_F1, const vector<double>& W_F1,
+			 const vector<double>& p0_Qmax, const vector<double>& p1_Qmax, const vector<double>& p2_Qmax,double num_str)
 	{
 		double start_point_Q=-1;
 
@@ -1229,7 +1229,7 @@ double Sigma::interpol(double Q, double W, double fi, vector<double> Q_F1, vecto
 	}
 
 double Sigma::getCS_fit(double Ebeam, double Q, double Qmax,double W, 
-			vector<double> Q_F1, vector<double> W_F1, vector<double> F1_F1,double num_str)
+			const vector<double>& Q_F1, const vector<double>& W_F1, const vector<double>& F1_F1,double num_str)
 			//,vector<double> Q_F2, vector<double> W_F2, vector<double> F2_F2,double num_str2)
 	{
 		double Qmax2=Qmax;//*Qmax;
