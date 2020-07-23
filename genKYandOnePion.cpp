@@ -28,13 +28,13 @@ using namespace std;
 int main(int argc, char *argv[]) {
 
   int channel;
-	string channelName="", outputFileName="genKYandOnePion.dat",dataPath;
+	string channelName="KLambda", outputFileName="genKYandOnePion.dat",dataPath;
 	double Ebeam=10.6, Q2min=0.05, Q2max=5., Wmin=1., Wmax=4.,V_z_min=0.,V_z_max=0.;
 	int nEventMax=100000;
     double jr, mr, gr, a12, a32, s12, onlyres;
     
   
-    char* short_options = (char*)"a:b:c:d:e:f:g:h:i:j:k:";
+    char* short_options = (char*)"a:b:c:d:e:f:g:h:i:j:k:l";
     const struct option long_options[] = {
         {"channel",required_argument,NULL,'a'},
         {"ebeam",required_argument,NULL,'b'},
@@ -46,6 +46,7 @@ int main(int argc, char *argv[]) {
         {"v_z_min",required_argument,NULL,'i'},
         {"v_z_max",required_argument,NULL,'j'},
         {"outname",required_argument,NULL,'k'},
+        {"docker",required_argument,NULL,'l'},
         {NULL,0,NULL,0}
     };
 
@@ -67,8 +68,10 @@ int main(int argc, char *argv[]) {
 					cout<<"channel is set to "<<optarg<<endl;
 					channelName=optarg;
 				}
-				else
-					printf("ERROR: found channel without value\n");
+				else(
+					printf("found channel without value\n");
+					cout<<"default value (KLambda) will be used"<<endl;
+				}
 				break;
 			};
 	
@@ -177,6 +180,16 @@ int main(int argc, char *argv[]) {
 				else{
 					printf("outname (name of output file) without value\n");
 					cout<<"default value will be used"<<endl;
+					}
+				break;
+			};
+			
+			case 'l': {
+				if (optarg!=NULL){
+					cout<<" all parameters are set to default value "<<endl;
+				}
+				else{
+					cout<<" all parameters are set to default value "<<endl;
 					}
 				break;
 			};
