@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 					cout<<"channel is set to "<<optarg<<endl;
 					channelName=optarg;
 				}
-				else(
+				else{
 					printf("found channel without value\n");
 					cout<<"default value (KLambda) will be used"<<endl;
 				}
