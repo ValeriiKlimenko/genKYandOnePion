@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
     double jr, mr, gr, a12, a32, s12, onlyres;
     
   
-    char* short_options = (char*)"a:b:c:d:e:f:g:h:i:j:k:l";
+    char* short_options = (char*)"a:b:c:d:e:f:g:h:i:j:k:l::";
     const struct option long_options[] = {
         {"channel",required_argument,NULL,'a'},
         {"ebeam",required_argument,NULL,'b'},
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
         {"v_z_min",required_argument,NULL,'i'},
         {"v_z_max",required_argument,NULL,'j'},
         {"outname",required_argument,NULL,'k'},
-        {"docker",required_argument,NULL,'l'},
+        {"docker",optional_argument,NULL,'l'},
         {NULL,0,NULL,0}
     };
 
@@ -186,10 +186,10 @@ int main(int argc, char *argv[]) {
 			
 			case 'l': {
 				if (optarg!=NULL){
-					cout<<" all parameters are set to default value "<<endl;
+					cout<<"All other parameters are set to default value "<<endl;
 				}
 				else{
-					cout<<" all parameters are set to default value "<<endl;
+					cout<<"All other parameters are set to default value "<<endl;
 					}
 				break;
 			};
