@@ -24,7 +24,7 @@ An example: ./genKYandOnePion --channel=KLambda
 
 Options:
 
---channel is chanel name "KLambda" or "KSigma" or "Pi0P" or "PiN" (No default value!)
+--channel is channel name "KLambda" or "KSigma" or "Pi0P" or "PiN" ("KLambda" is default value!)
 
 --ebeam is Ebeam that should be >0 and less than 12GeV (Energy of the beam) (default value is 10.6 GeV)
 
@@ -45,6 +45,8 @@ This is the range in Q2, where the events will be generated.
 --trig is number of events to generate >0  (default value is 100000)
 
 --outname is the name of the output file. (default value is genKYandOnePion.dat)
+
+--docker is an option that sets all the parametes to default values 
 
 An example of all options use:
 
