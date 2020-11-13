@@ -48,6 +48,8 @@ This is the range in Q2, where the events will be generated.
 
 --trig is number of events to generate >0  (default value is 100000)
 
+--seed it can be unsigned value, the default is current time in microseconds
+
 --outname is the name of the output file. (default value is genKYandOnePion.dat)
 
 --docker is an option that sets all the parametes to default values 
