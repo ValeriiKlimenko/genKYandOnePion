@@ -188,7 +188,54 @@ void cms2lab(double W, double Q2, double phi, double Ebeam,
   return;
 } //end cms2lab(...)
 
+void getPi0decayProd(TLorentzVector &PL,
+                    TLorentzVector &Ppfin, TLorentzVector &Ppim) {
 
+   //4-momenta Ppfin and Ppim in PL rest frame
+   //Set energy components
+   //double mL=massPion0;
+   Ppfin.SetXYZT(1.,1.,1.,(massPion0*massPion0)/2./massPion0);
+   Ppim.SetXYZT (1.,1.,1.,(massPion0*massPion0)/2./massPion0);
+   
+   //Set momentum muduli and angles
+   Ppfin.SetRho(sqrt(Ppfin.E()*Ppfin.E()));
+   Ppim.SetRho (sqrt(Ppim.E()*Ppim.E()));
+   double cost      = randomIntv(-1., 1.);
+   double thetapfin = acos(cost);
+   double phipfin   = randomIntv(0.0, 2.*constantPi);
+   double thetapim = constantPi-thetapfin;
+   double phipim   = phipfin+constantPi; if(phipim>2.*constantPi) phipim=phipim-2.*constantPi;
+   Ppfin.SetTheta(thetapfin);
+   Ppfin.SetPhi(phipfin);
+   Ppim.SetTheta(thetapim);
+   Ppim.SetPhi(phipim);
+   
+        //cout << " SSSS " <<  Ppfin.E() + Ppim.E() << " " << endl;
+	//cout << " EECMS " <<  Ppfin.E() << " " <<  Ppim.E() << " " << endl;
+	//cout << " PPCMS " <<  Ppfin.Vect().Mag() << " " <<  Ppim.Vect().Mag() << " " << endl;
+	//cout << " MMCMS " <<  Ppfin.M() << " " <<  Ppim.Mag() << " " << endl;
+	 
+	 
+   // boost to the PL lab frame.
+   double vx = PL.Px()/PL.E();
+   double vy = PL.Py()/PL.E();
+   double vz = PL.Pz()/PL.E();
+   Ppfin.Boost(vx,vy,vz);
+   Ppim.Boost (vx,vy,vz);
+	//cout << " PPLAB " <<  Ppfin.Vect().Mag() << " " <<  Ppim.Vect().Mag() << " " << endl;
+
+ 	//cout << " PPLAB " <<  Ppfin.Vect().Z() << " " <<  Ppim.Vect().Z() << " " << endl;
+  
+
+
+   //Ppfin.SetXYZT(0.1,0.1,0.1,(massPion0*massPion0)/2./massPion0);
+   //Ppim.SetXYZT (0.1,0.1,0.1,(massPion0*massPion0)/2./massPion0);
+   //Ppfin.Boost(vx,vy,vz);
+   //Ppim.Boost (vx,vy,vz);
+ 
+   //cout << " PPBOOST " <<  Ppfin.Vect().Mag() << " " <<  Ppim.Vect().Mag() << " " << endl;
+
+}
 
 
 // calculate Theta and Phi of the Kaon in hadron CM frame

@@ -30,11 +30,12 @@ int main(int argc, char *argv[]) {
   int channel;
 	string channelName="KLambda", outputFileName="genKYandOnePion.dat",dataPath;
 	double Ebeam=10.6, Q2min=0.05, Q2max=5., Wmin=1., Wmax=4.,V_z_min=0.,V_z_max=0.;
+	double target_diameter = 0.;
 	int nEventMax=100000;
     double jr, mr, gr, a12, a32, s12, onlyres;
     
   
-    char* short_options = (char*)"a:b:c:d:e:f:g:h:i:j:k:l::";
+    char* short_options = (char*)"a:b:c:d:e:f:g:h:i:j:k:l:p::";
     const struct option long_options[] = {
         {"channel",required_argument,NULL,'a'},
         {"ebeam",required_argument,NULL,'b'},
@@ -45,8 +46,9 @@ int main(int argc, char *argv[]) {
         {"trig",required_argument,NULL,'g'},
         {"v_z_min",required_argument,NULL,'i'},
         {"v_z_max",required_argument,NULL,'j'},
-        {"outname",required_argument,NULL,'k'},
-        {"docker",optional_argument,NULL,'l'},
+        {"targDiameter",required_argument,NULL,'k'},
+        {"outname",required_argument,NULL,'l'},
+        {"docker",optional_argument,NULL,'p'},
         {NULL,0,NULL,0}
     };
 
@@ -174,6 +176,19 @@ int main(int argc, char *argv[]) {
 			
 			case 'k': {
 				if (optarg!=NULL){
+					cout<<"target diameter in XY in cm: "<<optarg<<endl;
+					target_diameter=atof(optarg);
+				}
+				else{
+					printf("target diameter without value\n");
+					cout<<"default value will be used"<<endl;
+					}
+				break;
+			};
+			
+			
+			case 'l': {
+				if (optarg!=NULL){
 					cout<<"outname (name of output file) is set to "<<optarg<<endl;
 					outputFileName=(string)optarg;
 				}
@@ -184,7 +199,7 @@ int main(int argc, char *argv[]) {
 				break;
 			};
 			
-			case 'l': {
+			case 'p': {
 				if (optarg!=NULL){
 					cout<<"All other parameters are set to default value "<<endl;
 				}
@@ -201,7 +216,7 @@ int main(int argc, char *argv[]) {
 		};
 	};
     
-  if (!(channelName=="KLambda" || channelName=="KSigma" || channelName=="Pi0P" 
+  if (!(channelName=="KLambda" || channelName=="KSigma" || channelName=="Pi0P" || channelName=="Pi0P_2g" 
   			|| channelName=="PiN")) {
   cout<<"\nERROR: Chanel name is wrong. Please use option --channel=KLambda or (KSigma,Pi0P and PiN)\n ";
   return 1;
@@ -277,7 +292,7 @@ int main(int argc, char *argv[]) {
 	
 	cout << " Vertex-z min: " << V_z_min << " cm"<<endl;
 	cout << " Vertex-z max: " << V_z_max << " cm"<<endl;
-	
+	cout << " target diameter (XY plane): " << target_diameter << " cm"<<endl;
 	
 	cout << " nEvents is " << nEventMax << endl;
 //	input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -295,12 +310,17 @@ int main(int argc, char *argv[]) {
 		cout << "!!! new Wmax is " << Wmax << " Gev"<<endl;
 		cout<<endl;
 	}
-	bool check_in_data=check_input_data(dataPath,channelName,Ebeam,Q2min,Q2max,Wmin,Wmax,nEventMax);
+	
+	bool pion_decay = (channelName == "Pi0P_2g") ? true : false;
+	
+	string channelName_for_test = (channelName == "Pi0P_2g") ? "Pi0P" : channelName;
+	
+	bool check_in_data = check_input_data(dataPath,channelName_for_test,Ebeam,Q2min,Q2max,Wmin,Wmax,nEventMax);
 	if (check_in_data==0) {return 0;}
 
 	// initilize event generator
-	evGenerator eg(dataPath,channelName, Ebeam,  Q2min, Q2max, Wmin, Wmax);
-	channel=num_chanel(channelName);
+	evGenerator eg(dataPath,channelName_for_test, Ebeam,  Q2min, Q2max, Wmin, Wmax);
+	channel=num_chanel(channelName_for_test);
 
         cout << endl
 	     << " eg_ky initialized for channel " << channelName << endl  
@@ -336,10 +356,17 @@ int main(int argc, char *argv[]) {
 	 	vz_for_event=V_z_min + (V_z_max-V_z_min) * 	
 	 					(static_cast<double> (rand())/static_cast<double>(RAND_MAX));
 	 }
+	 double vx_event = 0, vy_event = 0;
+	 if (target_diameter > 0.){
+	 	double rad = target_diameter * (static_cast<double> (rand())/static_cast<double>(RAND_MAX));
+	 	double angle = constantPi2 * (static_cast<double> (rand())/static_cast<double>(RAND_MAX));
+	 	vx_event = rad*cos(angle);
+	 	vy_event = rad*sin(angle);
+	 }
 	  
 	  
-	output << "3 1 1 0 0 0 0 "
-	         <<" "<< W <<" "<< Q2 <<" "<< getomega(Q2, W) 
+	output << ( (pion_decay) ? "4" : "3") << " 1 1 0 0 0 0 "
+	   <<" "<< W <<" "<< Q2 <<" "<< getomega(Q2, W) 
 		 << endl;
 	  // electron
 	  output 
@@ -347,7 +374,7 @@ int main(int argc, char *argv[]) {
 	    << Pefin.Px() <<" "<< Pefin.Py() <<" "<< Pefin.Pz() 
 	    <<" "<< Pefin.E() <<" 0.0005"
 	   // <<" 0 0 0 "
-	    << " 0 0 "<<vz_for_event<<" "
+	    << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
 	    << endl;
 
 	if (channel==1){
@@ -357,7 +384,7 @@ int main(int argc, char *argv[]) {
 	    << PK.Px() <<" "<< PK.Py() <<" "<< PK.Pz() 
 	    <<" "<< PK.E() <<" 0.4936"
 	   // <<" 0 0 0 "
-	    << " 0 0 "<<vz_for_event<<" "
+	    << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
 	    << endl;
 
 	  output 
@@ -366,7 +393,7 @@ int main(int argc, char *argv[]) {
 	    << PL.Px() <<" "<< PL.Py() <<" "<< PL.Pz() 
 	    <<" "<< PL.E() <<" 1.115"
 	   // <<" 0 0 0 "
-	    << " 0 0 "<<vz_for_event<<" "
+	    << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
 	    << endl;
 	}
 
@@ -377,7 +404,7 @@ int main(int argc, char *argv[]) {
 	    << PK.Px() <<" "<< PK.Py() <<" "<< PK.Pz() 
 	    <<" "<< PK.E() <<" 0.4936"
 	   // <<" 0 0 0 "
-	    << " 0 0 "<<vz_for_event<<" "
+	    << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
 	    << endl;
 
 	  output 
@@ -385,27 +412,54 @@ int main(int argc, char *argv[]) {
 	    << PL.Px() <<" "<< PL.Py() <<" "<< PL.Pz() 
 	    <<" "<< PL.E() <<" 1.192"
 	   // <<" 0 0 0 "
-	    << " 0 0 "<<vz_for_event<<" "
+	    << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
 	    << endl;
 	}
 
 	if (channel==3){
-
-	  output 
-	    << "2 0 1 " << lundIdPiZero << " 0 0 "
-	    << PK.Px() <<" "<< PK.Py() <<" "<< PK.Pz() 
-	    <<" "<< PK.E() <<" 0.134"
-	   // <<" 0 0 0 "
-	    << " 0 0 "<<vz_for_event<<" "
+		if (pion_decay){
+		
+			TLorentzVector gamma1, gamma2;
+            getPi0decayProd(PK, gamma1, gamma2);
+		
+		output 
+	    << "2 0 1 " << 22 << " 0 0 "
+	    << gamma1.Px() <<" "<< gamma1.Py() <<" "<< gamma1.Pz() 
+	    <<" "<< gamma1.E() <<" 0.0"
+			  << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
 	    << endl;
-
+	    
 	  output 
-	    << "3 1 1 " << lundIdProton << " 0 0 "
+	    << "3 0 1 " << 22 << " 0 0 "
+	    << gamma2.Px() <<" "<< gamma2.Py() <<" "<< gamma2.Pz() 
+	    <<" "<< gamma2.E() <<" 0.0"
+			  << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
+	    << endl;
+	    
+	  output 
+	    << "4 1 1 " << lundIdProton << " 0 0 "
 	    << PL.Px() <<" "<< PL.Py() <<" "<< PL.Pz() 
 	    <<" "<< PL.E() <<" 0.9382"
-	   // <<" 0 0 0 "
-	    << " 0 0 "<<vz_for_event<<" "
+			  << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
 	    << endl;
+		
+		}else{
+			output 
+			  << "2 0 1 " << lundIdPiZero << " 0 0 "
+			  << PK.Px() <<" "<< PK.Py() <<" "<< PK.Pz() 
+			  <<" "<< PK.E() <<" 0.134"
+			 // <<" 0 0 0 "
+			  << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
+			  << endl;
+			  
+			 output 
+			  << "3 1 1 " << lundIdProton << " 0 0 "
+			  << PL.Px() <<" "<< PL.Py() <<" "<< PL.Pz() 
+			  <<" "<< PL.E() <<" 0.9382"
+			 // <<" 0 0 0 "
+			  << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
+			  << endl;
+		}
 	}
 
 	if (channel==4){
@@ -415,7 +469,7 @@ int main(int argc, char *argv[]) {
 	    << PK.Px() <<" "<< PK.Py() <<" "<< PK.Pz() 
 	    <<" "<< PK.E() <<" 0.1395"
 	   // <<" 0 0 0 "
-	    << " 0 0 "<<vz_for_event<<" "
+	    << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
 	    << endl;
 
 	  output 
@@ -423,66 +477,11 @@ int main(int argc, char *argv[]) {
 	    << PL.Px() <<" "<< PL.Py() <<" "<< PL.Pz() 
 	    <<" "<< PL.E() <<" 0.939"
 	   // <<" 0 0 0 "
-	    << " 0 0 "<<vz_for_event<<" "
+	    << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
 	    << endl;
 	}
 
-
-
-/*
-	  output 
-	    << "2 1 1 " << lundIdKaonPlus << " 0 0 "
-	    << PK.Px() <<" "<< PK.Py() <<" "<< PK.Pz() 
-	    <<" "<< PK.E() <<" 0.4936"
-	    <<" 0 0 0 "
-	    << endl;
-	  if(channel==1 || channel==2 || channel==4){
-	
-	  // Lambda
-	      //output 
-	      //  << "3 0 1 " << lundIdLambda << " 0 0 "
-	      //  << PL.Px() <<" "<< PL.Py() <<" "<< PL.Pz() 
-	      //  <<" "<< PL.E() <<" 1.115"
-	      //  <<" 0 0 0 "
-	      //  << endl;
-	  output 
-	    << "3 1 1 " << lundIdProton << " 0 0 "
-	    << Ppfin.Px() <<" "<< Ppfin.Py() <<" "<< Ppfin.Pz() 
-	    <<" "<< Ppfin.E() <<" 0.9383"
-	    <<" 0 0 0 "
-	    << endl;
-
-	
-	  output 
-	    << "4 -1 1 " << lundIdPiMinus << " 0 0 "
-	    << Ppim.Px() <<" "<< Ppim.Py() <<" "<< Ppim.Pz() 
-	    <<" "<< Ppim.E() <<" 0.1396"
-	    <<" 0 0 0 "
-	    << endl;
-	
-
-
-	  } else if(channel==3) {
-	  // Sigma zero
-	  output 
-	    << "2 0 1 " << lundIdSigmaZero << " 0 0 "
-	    << PL.Px() <<" "<< PL.Py() <<" "<< PL.Pz() 
-	    <<" "<< PL.E() <<" 1.192"
-	    <<" 0 0 0 "
-	    << endl;	  
-	  }
-	*/  
-	  // test 
-	  //TLorentzVector PfinSum = Pefin + PK + Ppfin + Ppim;
-	  //cout << " Pfin " << PfinSum.E() <<" "<< PfinSum.Px() <<" "<< PfinSum.Py() <<" "<< PfinSum.Pz()
-	  //     << endl; 
-	  //cout << " miss 0 "  << (Peini + Ppini - Pefin - PK - Ppfin - Ppim).M() << endl;
-	  //cout << " miss e "  << (Peini + Ppini - PK - Ppfin - Ppim).M() << endl;
-	  //cout << " miss p "  << (Peini + Ppini - Pefin - PK - Ppim).M() << endl;
-	  //cout << " miss K "  << (Peini + Ppini - Pefin - Ppfin - Ppim).M() << endl;
-	  //cout << " miss pi " << (Peini + Ppini - Pefin - PK - Ppfin).M() << endl;
-	  //cout << " Mass L "  << (Ppfin + Ppim).M() << endl;
-	  
+  
 	  
 	  if( int((i+1)/1000)*1000 == (i+1) | (i+1)==1) {
 	    cout << " Event # " << i+1 << endl; 

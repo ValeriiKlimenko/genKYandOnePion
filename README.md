@@ -24,7 +24,10 @@ An example: ./genKYandOnePion --channel=KLambda
 
 Options:
 
---channel is channel name "KLambda" or "KSigma" or "Pi0P" or "PiN" ("KLambda" is default value!)
+--channel is channel name "KLambda" or "KSigma" or "Pi0P" or "Pi0P_2g" or "PiN" ("KLambda" is default value!)
+
+Pi0P - EG will generate e,p,pi0
+Pi0P_2g is Pi0P with pi0 decay, EG will generate e,p,g,g
 
 --ebeam is Ebeam that should be >0 and less than 12GeV (Energy of the beam) (default value is 10.6 GeV)
 
@@ -41,6 +44,7 @@ This is the range in Q2, where the events will be generated.
 
 --v_z_max is vertex z max value in cm (default value is 0 cm)
 
+--targDiameter is target diameter in XY plane in cm (default value is 0 cm, it means that x and y will be 0 for all events)
 
 --trig is number of events to generate >0  (default value is 100000)
 
@@ -50,7 +54,7 @@ This is the range in Q2, where the events will be generated.
 
 An example of all options use:
 
-./genKYandOnePion --channel=KLambda --ebeam=10.6 --q2min=0.5 --q2max=11 --w_min=0.7 --w_max=3.7 --v_z_min=-9 --v_z_max=5  --trig=5000 --outname=result.dat
+./genKYandOnePion --channel=KLambda --ebeam=10.6 --q2min=0.5 --q2max=11 --w_min=0.7 --w_max=3.7 --v_z_min=-9 --v_z_max=5 --targDiameter=3 --trig=5000 --outname=result.dat
 
 	
 The output will be a lund file with the name that you set in outname option (genKYandOnePion.dat is default).
