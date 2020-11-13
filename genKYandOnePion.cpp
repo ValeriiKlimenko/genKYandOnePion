@@ -22,6 +22,9 @@
 #include <unistd.h>
 #include <getopt.h>
 
+#include <chrono>
+#include <ctime> 
+
 using namespace std;
 
 
@@ -32,10 +35,16 @@ int main(int argc, char *argv[]) {
 	double Ebeam=10.6, Q2min=0.05, Q2max=5., Wmin=1., Wmax=4.,V_z_min=0.,V_z_max=0.;
 	double target_diameter = 0.;
 	int nEventMax=100000;
+	
+	auto time = std::chrono::system_clock::now();
+	std::chrono::microseconds ms =
+					std::chrono::duration_cast<std::chrono::microseconds>(time.time_since_epoch()); 
+	long long unsigned seed_value = ms.count(); 
+	
     double jr, mr, gr, a12, a32, s12, onlyres;
     
   
-    char* short_options = (char*)"a:b:c:d:e:f:g:h:i:j:k:l:p::";
+    char* short_options = (char*)"a:b:c:d:e:f:g:h:i:j:k:l:p:r::";
     const struct option long_options[] = {
         {"channel",required_argument,NULL,'a'},
         {"ebeam",required_argument,NULL,'b'},
@@ -49,6 +58,7 @@ int main(int argc, char *argv[]) {
         {"targDiameter",required_argument,NULL,'k'},
         {"outname",required_argument,NULL,'l'},
         {"docker",optional_argument,NULL,'p'},
+        {"seed",optional_argument,NULL,'r'},
         {NULL,0,NULL,0}
     };
 
@@ -209,6 +219,17 @@ int main(int argc, char *argv[]) {
 				break;
 			};
 			
+			case 'r': {
+				if (optarg!=NULL){
+					seed_value=atoi(optarg);
+					cout<<"seed is set to "<<optarg<<endl;
+				}
+				else{
+					cout<<"random seed (sys time in microseconds) is used "<<endl;
+					}
+				break;
+			};
+			
 			case '?': default: {
 				printf("found unknown option\n");
 				break;
@@ -284,6 +305,14 @@ int main(int argc, char *argv[]) {
 
 	cout<<" Input parameters: "<<endl;
 	cout << " Channel is " << channelName << endl;
+	cout << " seed: " << seed_value << endl;
+	
+	/*
+	long long unsigned max_llint = 0;
+	max_llint = ~max_llint;
+	cout << "max value: " <<  max_llint << endl;
+	*/
+	
 	cout << " Ebeam is " << Ebeam << " Gev"<<endl;
 	cout << " Q2min is " << Q2min << " Gev2"<<endl;
 	cout << " Q2max is " << Q2max << " Gev2"<<endl;
