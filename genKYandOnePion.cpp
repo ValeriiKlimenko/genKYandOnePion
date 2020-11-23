@@ -305,7 +305,7 @@ int main(int argc, char *argv[]) {
 
 	cout<<" Input parameters: "<<endl;
 	cout << " Channel is " << channelName << endl;
-	cout << " seed: " << seed_value << endl;
+	cout << " RandomSeedActuallyUsed: " << seed_value << endl;
 	
 	/*
 	long long unsigned max_llint = 0;
