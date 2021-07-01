@@ -1,4 +1,9 @@
 # genKYandOnePion
+
+detailed description (CLAS12-Note 2021-003) is available at 
+https://misportal.jlab.org/mis/physics/clas12/index.cfm?note_year=2021
+
+
 EG is based on:
 1) at Q2 < 5GeV2 interpolation of the available CLAS data 
 2) at Q2 > 5GeV2 extrapolation of the available CLAS data that is based on Operator Product Expansion 
