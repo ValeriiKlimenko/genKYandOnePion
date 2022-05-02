@@ -3,6 +3,7 @@
 detailed description (CLAS12-Note 2021-003) is available at 
 https://misportal.jlab.org/mis/physics/clas12/index.cfm?note_year=2021
 
+This version has wider Q2 coverage up to Q2 = 30 GeV2 
 
 EG is based on:
 1) at Q2 < 5GeV2 interpolation of the available CLAS data 
@@ -29,16 +30,19 @@ An example: ./genKYandOnePion --channel=KLambda
 
 Options:
 
---channel is channel name "KLambda" or "KSigma" or "Pi0P" or "Pi0P_2g" or "PiN" ("KLambda" is default value!)
+--channel is channel name "KLambda" or "KSigma" or "Pi0P" or "Pi0P_2g" or "PiN" ("KLambda" is default value)
 
 Pi0P - EG will generate e,p,pi0
+
 Pi0P_2g is Pi0P with pi0 decay, EG will generate e,p,g,g
 
---ebeam is Ebeam that should be >0 and less than 12GeV (Energy of the beam) (default value is 10.6 GeV)
+--lambda1520=yes It works only for "KLambda" channel. It sets Lambda mass = 1518.8 MeV (default masss is 1115.683 MeV)
 
---q2min is Q2 min in GeV2 is more than 0.01 and less than 12 GeV2 (default value is 0.05 GeV2)
+--ebeam is Ebeam that should be >0 and less than 30GeV (Energy of the beam) (default value is 10.6 GeV)
 
---q2max is Q2 min in GeV2 >0.01 and less then 12 GeV2 (default value is 5 GeV2)
+--q2min is Q2 min in GeV2 is more than 0.01 and less than 30 GeV2 (default value is 0.05 GeV2)
+
+--q2max is Q2 min in GeV2 >0.01 and less then 30 GeV2 (default value is 5 GeV2)
 This is the range in Q2, where the events will be generated.
 
 --w_min is W min value in GeV. wmin should be >0,  if Wmin less than treshold, treshold value will be used. (default value is threshold GeV) 
@@ -65,13 +69,6 @@ An example of all options use:
 
 	
 The output will be a lund file with the name that you set in outname option (genKYandOnePion.dat is default).
-
-## Online submitions to OSG
-
-For online submissions to the OSG the output file name and number of events are controlled by the online submission form. Because of this the online form should include:
-
-
-
 
 
 Contact: valerii@jlab.org

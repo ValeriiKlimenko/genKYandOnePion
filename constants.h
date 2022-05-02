@@ -13,6 +13,8 @@ const double massKaon      = 0.493667;
 const double massKaon2     = massKaon*massKaon;
 const double massLambda    = 1.115683;
 const double massLambda2   = massLambda*massLambda;
+const double massLambda1520    = 1.5188;
+const double massLambda1520_2   = massLambda1520*massLambda1520;
 const double massSigma0    = 1.192642;
 const double massSigma02   = massSigma0*massSigma0;
 

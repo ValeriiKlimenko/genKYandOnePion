@@ -22,6 +22,11 @@
 #include <unistd.h>
 #include <getopt.h>
 
+#include <TRandom3.h>
+#include <TRandomGen.h>
+#include <sys/time.h>
+
+
 #include <chrono>
 #include <ctime> 
 
@@ -32,9 +37,10 @@ int main(int argc, char *argv[]) {
 
   int channel;
 	string channelName="KLambda", outputFileName="genKYandOnePion.dat",dataPath;
-	double Ebeam=10.6, Q2min=0.05, Q2max=5., Wmin=1., Wmax=4.,V_z_min=0.,V_z_max=0.;
+	double Ebeam=24., Q2min=2., Q2max=20., Wmin=1., Wmax=4.,V_z_min=0.,V_z_max=0.;
 	double target_diameter = 0.;
-	int nEventMax=100000;
+	bool isLam1520 = false;
+	int nEventMax = 100000;
 	
 	auto time = std::chrono::system_clock::now();
 	std::chrono::microseconds ms =
@@ -44,7 +50,7 @@ int main(int argc, char *argv[]) {
     double jr, mr, gr, a12, a32, s12, onlyres;
     
   
-    char* short_options = (char*)"a:b:c:d:e:f:g:h:i:j:k:l:p:r::";
+    char* short_options = (char*)"a:b:c:d:e:f:g:h:i:j:k:l:p:r:s::";
     const struct option long_options[] = {
         {"channel",required_argument,NULL,'a'},
         {"ebeam",required_argument,NULL,'b'},
@@ -59,6 +65,7 @@ int main(int argc, char *argv[]) {
         {"outname",required_argument,NULL,'l'},
         {"docker",optional_argument,NULL,'p'},
         {"seed",optional_argument,NULL,'r'},
+        {"lambda1520",optional_argument,NULL,'s'},
         {NULL,0,NULL,0}
     };
 
@@ -230,6 +237,20 @@ int main(int argc, char *argv[]) {
 				break;
 			};
 			
+			case 's': {
+				if (optarg!=NULL){
+					string strLam1520 = (string)optarg;
+					if (strLam1520 == "yes"){
+						isLam1520 = true;
+						cout<<"lambda mass: "<<massLambda1520<<" MeV"<<endl;
+					}
+					
+				}
+				else{
+					}
+				break;
+			};
+			
 			case '?': default: {
 				printf("found unknown option\n");
 				break;
@@ -305,8 +326,15 @@ int main(int argc, char *argv[]) {
 
 	cout<<" Input parameters: "<<endl;
 	cout << " Channel is " << channelName << endl;
-	cout << " RandomSeedActuallyUsed: " << seed_value << endl;
 	
+	
+	struct timeval tv;
+	gettimeofday(&tv,NULL);
+	unsigned long long rand_start = tv.tv_usec + 1000000ull*tv.tv_sec;
+	gRandom = new TRandomMT64();
+	gRandom->SetSeed(rand_start);
+	cout << " Random seed: " << rand_start << endl;
+	cout << " Random Engine = " << gRandom->ClassName() << endl;
 	/*
 	long long unsigned max_llint = 0;
 	max_llint = ~max_llint;
@@ -348,7 +376,7 @@ int main(int argc, char *argv[]) {
 	if (check_in_data==0) {return 0;}
 
 	// initilize event generator
-	evGenerator eg(dataPath,channelName_for_test, Ebeam,  Q2min, Q2max, Wmin, Wmax);
+	evGenerator eg(dataPath,channelName_for_test, Ebeam,  Q2min, Q2max, Wmin, Wmax, rand_start, isLam1520);
 	channel=num_chanel(channelName_for_test);
 
         cout << endl
@@ -358,6 +386,11 @@ int main(int argc, char *argv[]) {
 	     << " W range: "  << Wmin  <<"  "<< Wmax << ";  " << endl
 	     << " Vertex-z range: "  << V_z_min  <<"  "<< V_z_max << ";  " << endl
 	     << "   Number of events " << nEventMax << endl; 
+	     if (channelName_for_test == "KLambda"){
+	     	if(isLam1520) cout << " Lam is Lam(1520), mass: "<< massLambda1520 << endl;
+	     	else cout << " Lam mass: "<< massLambda << endl;
+	     
+	     }
 	     
  
         // 4-momenta of final electron, Kaon and Lambda, proton, pi- in LAB frame
@@ -379,16 +412,21 @@ int main(int argc, char *argv[]) {
 	  // header
 	  //output << "4 1 1 0 0 0 0 "
 	  
+
+	  
+	  
 	 // V-z calculating:
 	 double vz_for_event=V_z_max;
 	 if ((V_z_max-V_z_min)>0.01){
-	 	vz_for_event=V_z_min + (V_z_max-V_z_min) * 	
-	 					(static_cast<double> (rand())/static_cast<double>(RAND_MAX));
+	 	vz_for_event=V_z_min + (V_z_max-V_z_min) * 	gRandom->Uniform(0.,1.);
+	 					//(static_cast<double> (rand())/static_cast<double>(RAND_MAX));
 	 }
 	 double vx_event = 0, vy_event = 0;
 	 if (target_diameter > 0.){
-	 	double rad = target_diameter * (static_cast<double> (rand())/static_cast<double>(RAND_MAX));
-	 	double angle = constantPi2 * (static_cast<double> (rand())/static_cast<double>(RAND_MAX));
+	 	double rad = target_diameter * gRandom->Uniform(0.,1.); 
+	 	//(static_cast<double> (rand())/static_cast<double>(RAND_MAX));
+	 	double angle = constantPi2 * gRandom->Uniform(0.,1.);
+	 	//(static_cast<double> (rand())/static_cast<double>(RAND_MAX));
 	 	vx_event = rad*cos(angle);
 	 	vy_event = rad*sin(angle);
 	 }
@@ -415,12 +453,15 @@ int main(int argc, char *argv[]) {
 	   // <<" 0 0 0 "
 	    << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
 	    << endl;
+	    
+	    double tmpMass = (isLam1520) ? massLambda1520 : massLambda;
+	    string strMass = to_string(tmpMass).substr(0, 6);
 
 	  output 
 	   // << "3 0 1 " << lundIdSigmaZero << " 0 0 "
-	<< "3 0 1 " << lundIdLambda << " 0 0 "
+		<< "3 0 1 " << lundIdLambda << " 0 0 "
 	    << PL.Px() <<" "<< PL.Py() <<" "<< PL.Pz() 
-	    <<" "<< PL.E() <<" 1.115"
+	    <<" "<< PL.E() <<" " << strMass
 	   // <<" 0 0 0 "
 	    << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
 	    << endl;
@@ -449,7 +490,7 @@ int main(int argc, char *argv[]) {
 		if (pion_decay){
 		
 			TLorentzVector gamma1, gamma2;
-            getPi0decayProd(PK, gamma1, gamma2);
+            getPi0decayProd(PK, gamma1, gamma2, gRandom);
 		
 		output 
 	    << "2 0 1 " << 22 << " 0 0 "
@@ -512,8 +553,8 @@ int main(int argc, char *argv[]) {
 
   
 	  
-	  if( int((i+1)/1000)*1000 == (i+1) | (i+1)==1) {
-	    cout << " Event # " << i+1 << endl; 
+	  if( i % 10000 == 0) {
+	    cout << " Event # " << i << endl; 
 	  }
 	}
 	output.close();

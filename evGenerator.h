@@ -1,18 +1,16 @@
-#ifndef _EVGENERATOR_H
-#define _EVGENERATOR_H
 
 #include "string.h"
 #include <time.h>
 
 #include <TLorentzVector.h>
+#include <TRandom.h>
 
 #include "utils.h"
 #include "constants.h"
 #include "kinematics.h"
 //#include "sigmaKY.h"
 #include "sigmaValera.h"
-//called after throwing an instance of 'std::bad_alloc'
-  //what():  std::bad_alloc
+
 
 class evGenerator {
 
@@ -25,6 +23,16 @@ class evGenerator {
   double Wmin;
   double Wmax;
   double d5sigmaMax;
+  
+  TRandom* gRandom = new TRandomMT64();
+  
+  // get random number in the interval [min, max].
+  double inline randomIntv(double min, double max){
+
+  return gRandom->Uniform(min, max);
+  //return min + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(max-min)));
+};
+	
   Sigma  *model;
 
   //double cos_min;//only for test
@@ -36,12 +44,14 @@ public:
 
 evGenerator(string dataPath, string t, double E, 
             double q2min, double q2max,
-	    double wmin,  double wmax, 
+	    double wmin,  double wmax, unsigned long long rand_start, bool isL1520,
 		//double cosmin,  double cosmax,//only for test
 	    double jr=-1, double mr=0, double gr=0, 
             double a12=0., double a32=0., double s12=0., 
 	    int onlyres=0)
   {
+  
+  gRandom->SetSeed(rand_start);
   type = t;
   Ebeam = E;
   Q2min = q2min;      
@@ -56,8 +66,9 @@ evGenerator(string dataPath, string t, double E,
     int channel=0;//1-KL 2-KS 3-PiOP 4-PiN
 
 	if(type == "KLambda"){ 
-		m1 = massKaon; 
-    		m2 = massLambda;
+		m1 = massKaon;
+		if (isL1520) m2 = massLambda1520;
+		else m2 = massLambda;
 		channel=1;
 	}else{
 		if(type == "KSigma"){ 
@@ -194,10 +205,3 @@ void getEvent(double &Q2, double &W,
 
 	
 };
-
-
-
-
-
-
-#endif 

@@ -44,6 +44,9 @@ double getKH(double Q2, double W) {
    return getomega(Q2, W) - (Q2/2./massProton);
 }
 
+double getK(double Q2, double W){
+	return (2*getomega(Q2,W)*massProton-Q2)/(2*massProton);
+}
 
 
 // longitudinal polarization parameter
@@ -189,7 +192,7 @@ void cms2lab(double W, double Q2, double phi, double Ebeam,
 } //end cms2lab(...)
 
 void getPi0decayProd(TLorentzVector &PL,
-                    TLorentzVector &Ppfin, TLorentzVector &Ppim) {
+                    TLorentzVector &Ppfin, TLorentzVector &Ppim, TRandom* gRandom) {
 
    //4-momenta Ppfin and Ppim in PL rest frame
    //Set energy components
@@ -200,9 +203,9 @@ void getPi0decayProd(TLorentzVector &PL,
    //Set momentum muduli and angles
    Ppfin.SetRho(sqrt(Ppfin.E()*Ppfin.E()));
    Ppim.SetRho (sqrt(Ppim.E()*Ppim.E()));
-   double cost      = randomIntv(-1., 1.);
+   double cost      = randomIntvTR(-1., 1., gRandom);
    double thetapfin = acos(cost);
-   double phipfin   = randomIntv(0.0, 2.*constantPi);
+   double phipfin   = randomIntvTR(0.0, 2.*constantPi, gRandom);
    double thetapim = constantPi-thetapfin;
    double phipim   = phipfin+constantPi; if(phipim>2.*constantPi) phipim=phipim-2.*constantPi;
    Ppfin.SetTheta(thetapfin);
@@ -286,7 +289,7 @@ void lab2cms(double Q2, double Ebeam,
 
 
 void getLdecayProd(TLorentzVector &PL,
-                   TLorentzVector &Ppfin, TLorentzVector &Ppim) {
+                   TLorentzVector &Ppfin, TLorentzVector &Ppim, TRandom* gRandom) {
 
    //4-momenta Ppfin and Ppim in PL rest frame
    //Set energy components
@@ -297,9 +300,9 @@ void getLdecayProd(TLorentzVector &PL,
    //Set momentum muduli and angles
    Ppfin.SetRho(sqrt(Ppfin.E()*Ppfin.E()-massProton2));
    Ppim.SetRho (sqrt(Ppim.E()*Ppim.E()  -massPion2));
-   double cost      = randomIntv(-1., 1.);
+   double cost      = randomIntvTR(-1., 1., gRandom);
    double thetapfin = acos(cost);
-   double phipfin   = randomIntv(0.0, 2.*constantPi);
+   double phipfin   = randomIntvTR(0.0, 2.*constantPi, gRandom);
    double thetapim = constantPi-thetapfin;
    double phipim   = phipfin+constantPi; if(phipim>2.*constantPi) phipim=phipim-2.*constantPi;
    Ppfin.SetTheta(thetapfin);
@@ -339,7 +342,7 @@ void getLdecayProd(TLorentzVector &PL,
 
 
 void getSdecayProd(TLorentzVector &PS, TLorentzVector &PL,
-                   TLorentzVector &Ppfin, TLorentzVector &Ppim, TLorentzVector &Pgam) {
+                   TLorentzVector &Ppfin, TLorentzVector &Ppim, TLorentzVector &Pgam, TRandom* gRandom) {
 
    //4-momenta PL and Pgam in the PS rest frame
    //Set energy components 
@@ -350,9 +353,9 @@ void getSdecayProd(TLorentzVector &PS, TLorentzVector &PL,
    //Set momentum muduli and angles
    Pgam.SetRho(sqrt(Pgam.E()*Pgam.E()-0.));
    PL.SetRho  (sqrt(PL.E()*PL.E()    -massLambda2));
-   double cost = randomIntv(-1., 1.);
+   double cost = randomIntvTR(-1., 1., gRandom);
    double thetagam = acos(cost);
-   double phigam   = randomIntv(0.0, 2.*constantPi);
+   double phigam   = randomIntvTR(0.0, 2.*constantPi, gRandom);
    double thetaL   = constantPi-thetagam;
    double phiL     = phigam+constantPi; if(phiL>2.*constantPi) phiL=phiL-2.*constantPi;
    Pgam.SetTheta(thetagam);
@@ -370,7 +373,7 @@ void getSdecayProd(TLorentzVector &PS, TLorentzVector &PL,
    //prnLV(" PS         ",   PS);
    //prnLV(" Pg+PL      ", (Pgam+PL));
 
-   getLdecayProd(PL, Ppfin, Ppim);
+   getLdecayProd(PL, Ppfin, Ppim, gRandom);
 
    //prnLV(" Pg+Ppr+Ppi ", (Pgam+Ppfin+Ppim)); 
    //cout <<" MMM "<< PS.M() <<" "<<PL.M()<<" "<<Pgam.M()<<" "<<Ppfin.M()<<" "<<Ppim.M()<< endl; 

@@ -14,19 +14,22 @@
 //ROOT LIBRARIES
 #include <TLorentzVector.h>
 
+#include <TRandom.h>
+#include <TRandom3.h>
+#include <TRandomGen.h>
+#include <sys/time.h>
+
+
 #include "constants.h"
 
 using namespace std;
 
 
 
-// get random number in the interval [min, max].
-double inline randomIntv(double min, double max){
-  return min + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(max-min)));
-};
-// get random number in the interval [min, max].
-double inline random(double min, double max){
-  return min + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(max-min)));
+ double inline randomIntvTR(double min, double max, TRandom* gRandom){
+
+  return gRandom->Uniform(min, max);
+  //return min + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(max-min)));
 };
 
 

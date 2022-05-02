@@ -4,6 +4,30 @@
 #include <vector>
 #include "utils.h"
 #include "kinematics.h"
+#include <stdexcept>
+
+enum channel{
+	KLambda = 0,
+	KSigma = 1,
+	Pi0P = 2,
+	piN = 3
+};
+
+struct CS_at_max_Q2{
+	double Q2;
+	double BeamEner; // Has to be checked, it should be taken from an. notes
+	double cosTh, p0,p1,p2;
+	double cr1, cr2; // two correcion factors
+};
+
+struct f1_params{
+	double W, p0,p1,p2;
+};
+
+double naive_lerp(const double a,const  double b,const  double t)
+{
+    return a + t * (b - a);
+}
 
 bool check_kin(double Q,double W, double Ebeam)
 {
@@ -23,8 +47,8 @@ bool check_input_data(string dataPath, string __channelName,double __Ebeam, doub
  if ((__channelName!="KLambda")&&(__channelName!="KSigma")&&(__channelName!="PiN")&&(__channelName!="Pi0P")){
   cout<<"incorrect name of chanel, pls try: KLambda or KSigma or Pi0P or PiN"<< endl;
   return 0;}
- if ((__Ebeam<0)||(__Ebeam>12)){
-  cout<<"incorrect Energy, right value is Energy>0 and Energy <12 "<< endl;
+ if ((__Ebeam<0)||(__Ebeam>30)){
+  cout<<"incorrect Energy, right value is Energy>0 and Energy <30 "<< endl;
   return 0;}
  if (__nEventMax<0){
   cout<<"incorrect nEventMax, right value >0 "<< endl;
@@ -32,8 +56,8 @@ bool check_input_data(string dataPath, string __channelName,double __Ebeam, doub
  if (__Q2max<__Q2min){
   cout<<"incorrect Q2_max or Q2_min"<< endl;
   return 0;}
- if ((__Q2max>12)||(__Q2max<0)){
-  cout<<"incorrect Q2_max, Q2_max<=12"<< endl;
+ if ((__Q2max>30)||(__Q2max<0)){
+  cout<<"incorrect Q2_max, Q2_max<30"<< endl;
   return 0;}
  if (__Wmax>5.){cout<<"incorrect W_max, try less than 5 GeV ;"<< endl; return 0;}
 
@@ -64,6 +88,199 @@ class Sigma{
  int range_fi=-1;//1: -180 +180 2: 0 360
  int range_cos=-1;//1: == 2: n !=
 ////////////////////////Q2 extrapolation 5-12 GeV2 functions:////////////////////////
+
+/// updated 04/21/2022: ////
+
+		vector<pair<double, vector<CS_at_max_Q2>>> vCSmaxQ2;
+		vector<f1_params> vF1;
+		
+		void read_maxQ2(const string& dataPath, const channel& channelName){
+			const vector<string> files_fitted_cs_at_maxQ2 = {"/KLambda_CS_Qmax_Fit_gladk.txt",
+														"/KSigma_CS_Qmax_Fit_gladk.txt",
+														"/Pi0P_CS_Qmax_Fit_gladk.txt",
+														"/PiN_CS_Qmax_Fit_gladk.txt"};
+			ifstream f_Q2max;
+			const string filePath = dataPath + files_fitted_cs_at_maxQ2.at(static_cast<int>(channelName));
+			f_Q2max.open(filePath);
+			
+			if (!f_Q2max.is_open())
+				throw invalid_argument("file is not open: " + filePath);
+			
+			//Get rid of header
+			string tmpStr;
+			getline(f_Q2max, tmpStr);
+    		getline(f_Q2max, tmpStr);
+			
+			
+			double previousW = 0;
+			bool firstEnter = true;
+			vector<CS_at_max_Q2> tmpVbuff;
+			while(f_Q2max.good()){
+				double tmpW = 0, tmpQ2 = 0, tmpBE = 0,  tmpCosTh = 0;
+				double tmpP0 = 0, tmpP1 = 0, tmpP2 = 0;
+				double tmpCr1 = 0, tmpCr2 = 0;
+				f_Q2max >> tmpW;
+				f_Q2max >> tmpQ2;
+				f_Q2max >> tmpBE;
+				f_Q2max >> tmpCosTh;
+				
+				//cout<<tmpW << ' ' << tmpQ2 << ' ' <<tmpBE << ' ' << tmpCosTh << endl;;
+				//check that data is reasonable:
+				if (tmpW < 1. || tmpW > 5. || tmpQ2 < 0. || tmpQ2 > 30. || tmpCosTh < -1. || tmpCosTh > 1.)
+					continue;
+				
+				f_Q2max >> tmpP0;
+				f_Q2max >> tmpP1;
+				f_Q2max >> tmpP2;
+				
+				f_Q2max >> tmpCr1;
+				f_Q2max >> tmpCr2;
+				double fullCorr = tmpCr1 * tmpCr2;
+				//check fullCorr
+				
+				//cout << tmpW << ' ';
+				if (abs(tmpW - previousW )< 0.00001 || firstEnter){
+								//cout << '1' << endl;
+					tmpVbuff.push_back({tmpQ2, tmpBE, tmpCosTh, tmpP0 * fullCorr, tmpP1 * fullCorr, tmpP2 * fullCorr, tmpCr1, tmpCr1});
+				}else{
+								//cout << '2' << endl;
+					vCSmaxQ2.push_back({previousW, tmpVbuff});
+					tmpVbuff.clear();
+					tmpVbuff.push_back({tmpQ2, tmpBE, tmpCosTh, tmpP0 * fullCorr, tmpP1 * fullCorr, tmpP2 * fullCorr, tmpCr1, tmpCr1});
+				}
+				previousW = tmpW;
+				firstEnter = false;
+			}
+			
+			
+			if ((previousW - vCSmaxQ2.back().first) > 0.001)
+				vCSmaxQ2.push_back({previousW, tmpVbuff});
+				
+			if (vCSmaxQ2.size() < 1)
+					throw invalid_argument("something wrong (1) with file format: " + filePath);
+			
+		};
+		
+		void read_StrFunF1(const string& dataPath, const channel& channelName){
+			const vector<string> files_f1 = {"/KL_Fit_F1_Q2_30.dat",
+											"/KS_Fit_F1_Q2_30.dat",
+											"/Pi0P_Fit_F1_Q2_30.dat",
+											"/PiN_Fit_F1_Q2_30.dat"};
+			ifstream f_f1;
+			const string filePath = dataPath + "/highQ2" + files_f1.at(static_cast<int>(channelName));
+			f_f1.open(filePath);
+			
+			if (!f_f1.is_open())
+				throw invalid_argument("file is not open: " + filePath);
+			
+			//Get rid of header
+			string tmpStr;
+			getline(f_f1, tmpStr);
+				
+			while(f_f1.good()){
+				double tmpW = 0,tmpP0 = 0, tmpP1 = 0, tmpP2 = 0;
+				f_f1 >> tmpW;
+				
+				//cout<<tmpW << ' ' << tmpQ2 << ' ' <<tmpBE << ' ' << tmpCosTh << endl;;
+				//check that data is reasonable:
+				if (tmpW < 1. || tmpW > 5.)
+					continue;
+				
+				f_f1 >> tmpP0;
+				f_f1 >> tmpP1;
+				f_f1 >> tmpP2;
+				
+				vF1.push_back({tmpW, tmpP0, tmpP1, tmpP2});
+			}
+			if (vF1.size() < 1)
+					throw invalid_argument("something wrong (1) with file format: " + filePath);
+		};
+
+		double interpol(const double W, const double cosTh, const double phi){
+		
+			//cout<<W<<' '<< cosTh << ' '<< phi << " type:";
+			// naive temp.func re-do with binary search:
+			for (size_t iW = 0; iW < vCSmaxQ2.size() - 1; iW++){
+				if (W == vCSmaxQ2[iW].first || W == vCSmaxQ2[iW + 1].first){
+					if (W == vCSmaxQ2[iW + 1].first) 
+						iW++;
+					//cout << '1' <<endl;
+					return getCSfromVbyWposAndCosThValue(iW, cosTh, phi);
+				}
+				if ( W > vCSmaxQ2[iW].first && W < vCSmaxQ2[iW + 1].first){
+					//cout << '2' <<endl;
+					// add both W and cos interp
+					double cs_minW = getCSfromVbyWposAndCosThValue(iW, cosTh, phi);
+					double cs_maxW = getCSfromVbyWposAndCosThValue(iW+1, cosTh, phi);
+					double l = (W - vCSmaxQ2[iW].first) / ( vCSmaxQ2[iW + 1].first - vCSmaxQ2[iW].first);
+					return naive_lerp(cs_minW, cs_maxW, l);
+				}	
+			}
+			
+			//throw error
+			return 0;
+		};
+		
+		double getF1(const double W, const double Q2){
+			//Get F1 at smaller W:
+			int binN_low = (W - vF1.front().W) * (vF1.size() - 1) / (vF1.back().W  - vF1.front().W);
+			double minF1 = vF1.at(binN_low).p0 + vF1.at(binN_low).p1 / Q2 + vF1.at(binN_low).p2 / (Q2 *Q2);
+			//cout << (W - vF1.front().W) << ' ' << (vF1.back().W  - vF1.front().W) << ' ' << (vF1.back().W  - vF1.front().W) / (vF1.size() - 1) << " M:" << binN_low << endl;
+			if (binN_low == vF1.size() - 1)
+				return minF1;
+			else{
+				int binN = binN_low + 1;
+				double maxF1 = vF1.at(binN).p0 + vF1.at(binN).p1 / Q2 + vF1.at(binN).p2 / (Q2 * Q2);
+				double l = (W - vF1.at(binN_low).W) * (vF1.size() - 1) / (vF1.back().W  - vF1.front().W);
+				//cout<<" W:" << W << ' ' <<  minF1 << ' ' << maxF1 << ' ' <<  l << ' ' << binN_low << endl;
+				return naive_lerp(minF1, maxF1, l);
+			}
+		}
+		
+		//legacy name from sigmaValera.h
+		double getCS_fit(const double Ebeam,const  double Q2, const double Q2_max,const double W){
+			//F1 and CS at max data Q2:
+			double sigma_t_max = getF1(W, Q2_max) * 4 * constantPi2 *
+									constantAlpha / (getK(Q2_max,W) * massProton);
+			double sigma_l_max = sigma_t_max * 0.2;
+			double sigma_max = sigma_t_max + getEpsilon(Ebeam,Q2_max,W) * sigma_l_max;
+			//F1 and CS at current Q2:
+			double sigma_t = getF1(W, Q2) * 4 * constantPi2 *
+									constantAlpha / (getK(Q2,W) * massProton);
+			double sigma_l = sigma_t * 0.2;
+			double sigma = sigma_t + getEpsilon(Ebeam,Q2,W) * sigma_l;
+			return sigma / sigma_max;
+		};
+		
+		
+		double getCSfromVbyPos(const size_t iW, const size_t iCosTh, const double phi){
+			return vCSmaxQ2[iW].second[iCosTh].p0 +
+					vCSmaxQ2[iW].second[iCosTh].p1 * cos(2*phi/57.29578049) +
+					vCSmaxQ2[iW].second[iCosTh].p2 * cos(phi/57.29578049);
+		}
+		
+		double getCSfromVbyWposAndCosThValue(const size_t iW, const double cosTh, const double phi){
+			//cout<<"ch W:" << vCSmaxQ2[iW].first<<endl;
+			for (size_t iCosTh = 0; iCosTh < vCSmaxQ2[iW].second.size() - 1; iCosTh++){
+			
+				if (cosTh == vCSmaxQ2[iW].second[iCosTh].cosTh || cosTh == vCSmaxQ2[iW].second[iCosTh +1].cosTh){
+					if (cosTh == vCSmaxQ2[iW].second[iCosTh + 1].cosTh) iCosTh++;
+						return getCSfromVbyPos(iW, iCosTh, phi);
+				}
+			
+				// cos intrep
+				if (cosTh > vCSmaxQ2[iW].second[iCosTh].cosTh && cosTh < vCSmaxQ2[iW].second[iCosTh + 1].cosTh){
+					double l = (cosTh - vCSmaxQ2[iW].second[iCosTh].cosTh) / 
+								(vCSmaxQ2[iW].second[iCosTh + 1].cosTh - vCSmaxQ2[iW].second[iCosTh].cosTh);
+					return naive_lerp(getCSfromVbyPos(iW, iCosTh, phi), getCSfromVbyPos(iW, iCosTh + 1, phi), l);
+				}
+			}
+			
+			//throw error
+			return 0;
+		}
+
+/////////// old 2018: ///////////////
  double getK(double Q, double W);
  double fun_points(double Q, double W, const vector<double>& Q_F1, const vector<double>& W_F1, const vector<double>& F1_F1,int num_str);
  double anti_Fit(double fi, double p0,double p1,double p2)
@@ -71,11 +288,11 @@ class Sigma{
 
  double lineal_interp_1(double x_r, const vector<double>& x,const vector<double>& y,int num_str);
 
- double interpol(double Q, double W, double fi, const vector<double>& Q_F1, const vector<double>& W_F1,
-    const vector<double>& p0_Qmax, const vector<double>& p1_Qmax, const vector<double>& p2_Qmax,double num_str);
+ //double interpol(double Q, double W, double fi, const vector<double>& Q_F1, const vector<double>& W_F1,
+ //   const vector<double>& p0_Qmax, const vector<double>& p1_Qmax, const vector<double>& p2_Qmax,double num_str);
 
- double getCS_fit(double Ebeam, double Q, double Qmax,double W, 
-   const vector<double>& Q_F1, const vector<double>& W_F1, const vector<double>&F1_F1,double num_str);
+ //double getCS_fit(double Ebeam, double Q, double Qmax,double W, 
+ //  const vector<double>& Q_F1, const vector<double>& W_F1, const vector<double>&F1_F1,double num_str);
 			//,vector<double> Q_F2, vector<double> W_F2, vector<double> F2_F2,double num_str2);
  double check_input_param(double Q,double W, double Ebeam);
  double check_cos(double costeta, double W);
@@ -143,7 +360,7 @@ double Sigma::d5sigma(double Ebeam, double Q2, double W, double thetaK, double p
  bool ch=check_kin(Q2,W,Ebeam);
  if (ch==0) { //cout<<"uncorrect input Q and W"<<endl;
   return 0;}
- if ((W<porog_ch(type_chanel))||(Q2<0.0001)||(Q2>12)||(W>5)||(phiK<0)||(phiK>6.284)) return 0;
+ if ((W<porog_ch(type_chanel))||(Q2<0.0001)||(Q2>30)||(W>5)||(phiK<0)||(phiK>6.284)) return 0;
  double mp=massProton;
  double mp2 = mp*mp;
  double pi=constantPi;
@@ -173,7 +390,7 @@ double Sigma::d5sigma2(double Ebeam, double Q2, double W, double costhetaK, doub
  bool ch=check_kin(Q2,W,Ebeam);
  if (ch==0) { //cout<<"uncorrect input Q and W"<<endl;
   return 0;}
- if ((W<porog_ch(type_chanel))||(Q2<0.0001)||(Q2>12)||(W>5)||(phiK<0)||(phiK>6.284)||(costhetaK>1)||(costhetaK<-1)) return 0;
+ if ((W<porog_ch(type_chanel))||(Q2<0.0001)||(W>5)||(phiK<0)||(phiK>6.284)||(costhetaK>1)||(costhetaK<-1)) return 0;
   double mp=massProton;
   double mp2 = mp*mp;
   double pi=constantPi;
@@ -211,10 +428,10 @@ double Sigma::d5sigma_max(double Ebeam, double Q2min, double Q2max,
 
 	// Find maximum of the cross section
 
-        int nQ2=10;
-        int nW=35;
-        int nCosThetaK=50;
-        int nPhiK=50;
+        int nQ2=12;
+        int nW=40;
+        int nCosThetaK=60;
+        int nPhiK=60;
 	double d5sigmaMax=0.;
 
 Q2max=Q2max-(Q2max-Q2min)/2;
@@ -260,8 +477,13 @@ if (d5sigmaMax==0){cout<<"incorrect kinematic region, pls check input Q2 and Ene
 			double new_costeta=check_cos(costeta,W);
 			if (ch==1){
 			//cout<<"W="<<W<<endl;
-			double CS=interpol(W,new_costeta,fi,W_Qmax,costeta_Qmax,p0_Qmax,p1_Qmax,p2_Qmax,num_str3);
-			getCS_fit(Ebeam,Q,Q_Qmax[2],W,Q_F1,W_F1,F1_F1,num_str);//,Q_F2,W_F2,F2_F2,num_str2);
+			
+
+			
+			double CS=interpol(W,new_costeta,fi);
+			//double CS=interpol(W,new_costeta,fi,W_Qmax,costeta_Qmax,p0_Qmax,p1_Qmax,p2_Qmax,num_str3);
+			getCS_fit(Ebeam,Q,Q_Qmax[2],W);
+			//getCS_fit(Ebeam,Q,Q_Qmax[2],W,Q_F1,W_F1,F1_F1,num_str);//,Q_F2,W_F2,F2_F2,num_str2);
 
 			if (real_W<W){
 				double an_dw=1/(W-porog_ch(type_chanel));
@@ -301,7 +523,7 @@ if (d5sigmaMax==0){cout<<"incorrect kinematic region, pls check input Q2 and Ene
 			return 0.;
 		}
 		
-		double Sigma::get_CS(double Q,double W, double costeta, double fi, double Ebeam)
+		double Sigma::get_CS( double Q, double W, double costeta, double fi, double Ebeam)
 		{
 			double real_W=W;
 
@@ -322,8 +544,15 @@ if (d5sigmaMax==0){cout<<"incorrect kinematic region, pls check input Q2 and Ene
 			}
 			double new_costeta=check_cos(costeta,W);
 			if (ch==1){
-			 double part1=interpol(W,new_costeta,fi,W_Qmax,costeta_Qmax,p0_Qmax,p1_Qmax,p2_Qmax,num_str3);
-			 double part2=getCS_fit(Ebeam,Q,Q_Qmax[2],W,Q_F1,W_F1,F1_F1,num_str);//,Q_F2,W_F2,F2_F2,num_str2);
+			
+
+			
+			 double part1=interpol(W,new_costeta,fi);
+			 //double part1=interpol(W,new_costeta,fi,W_Qmax,costeta_Qmax,p0_Qmax,p1_Qmax,p2_Qmax,num_str3);
+			 
+
+			 double part2=getCS_fit(Ebeam,Q,Q_Qmax[2],W);
+			 //double part2=getCS_fit(Ebeam,Q,Q_Qmax[2],W,Q_F1,W_F1,F1_F1,num_str);//,Q_F2,W_F2,F2_F2,num_str2);
 			 double CS=part1*part2;
 			if (real_W<W){
 				double an_dw=1/(W-porog_ch(type_chanel));
@@ -335,6 +564,7 @@ if (d5sigmaMax==0){cout<<"incorrect kinematic region, pls check input Q2 and Ene
 			if ((type_chanel==1)&&(real_W>1.635)&&(real_W<1.66)) return 1.2*CS;
 			if ((type_chanel==1)&&(real_W>2.35)&&(real_W<2.46)) return 1.08*CS;
 			if ((type_chanel==1)&&(real_W>2.35)) return 1.2*CS;
+			
 			if ((type_chanel==2)&&(real_W>2.20)&&(real_W<2.3)) return 1.07*CS;
 			if ((type_chanel==2)&&(real_W>2.3)) return 1.14*CS;
 			if ((type_chanel==2)&&(real_W<1.748)) return 1.12*CS;
@@ -750,7 +980,7 @@ if (d5sigmaMax==0){cout<<"incorrect kinematic region, pls check input Q2 and Ene
 					else tmp_W=0;
 					W_inter.push_back(chislo);
 				}
-				interp_right>>chislo;//CS interp riht
+				interp_right>>chislo;//CS interp right
 				if(chislo!=-1)
 				{
 					//cout<<"CS_inter="<<chislo<<endl;
@@ -983,6 +1213,13 @@ if (d5sigmaMax==0){cout<<"incorrect kinematic region, pls check input Q2 and Ene
 				chislo=-1;
 			}
 			n_str_Ev--;
+			
+			//added 04/21/2022
+			
+			channel channelName = static_cast<channel>(chanel - 1);
+			read_maxQ2(dataPath, channelName);
+			read_StrFunF1(dataPath, channelName);
+			////
 		
 		}
 		double Sigma::check_cos(double costeta,double W){
@@ -1003,10 +1240,8 @@ double Sigma::porog_ch(int num_chanel){//1-KL 2-KS 3-Pi0P 4-PiN
 	return 0;
 }
 
-double  Sigma::getK(double Q, double W){
-	double Q2=Q;//*Q;
-	double K=(2*getomega(Q2,W)*massProton-Q)/(2*massProton);
-	return K;
+double  Sigma::getK(double Q2, double W){
+	return (2*getomega(Q2,W)*massProton-Q2)/(2*massProton);
 }
 
 double Sigma::fun_points(double Q, double W, const vector<double>& Q_F1, const vector<double>& W_F1, const vector<double>& F1_F1,int num_str){
@@ -1114,7 +1349,7 @@ double Sigma::lineal_interp_1(double x_r, const vector<double>& x,const vector<d
 	
 	return 0;
 }
-
+/*
 double Sigma::interpol(double Q, double W, double fi, const vector<double>& Q_F1, const vector<double>& W_F1,
 			 const vector<double>& p0_Qmax, const vector<double>& p1_Qmax, const vector<double>& p2_Qmax,double num_str)
 	{
@@ -1227,7 +1462,8 @@ double Sigma::interpol(double Q, double W, double fi, const vector<double>& Q_F1
 		return 0;
 
 	}
-
+*/
+/*
 double Sigma::getCS_fit(double Ebeam, double Q, double Qmax,double W, 
 			const vector<double>& Q_F1, const vector<double>& W_F1, const vector<double>& F1_F1,double num_str)
 			//,vector<double> Q_F2, vector<double> W_F2, vector<double> F2_F2,double num_str2)
@@ -1255,9 +1491,9 @@ double Sigma::getCS_fit(double Ebeam, double Q, double Qmax,double W,
 		//double interpol_F2=fun_points(Q,W,Q_F2,W_F2,F2_F2,num_str2);//calc of interpol of F2;
 
 		double Gt=interpol_F1*4*constantPi2*constantAlpha/(getK(Q,W)*massProton);
-		/*double Gl=(4*constantPi2*constantAlpha*interpol_F2*2*massProton*(-Q-getomega(Q2,W)*getomega	(Q2,W))/
-						(getomega(Q2,W)*(-Q)*(2*getomega(Q2,W)*massProton-Q)))-Gt;
-		*/
+		//double Gl=(4*constantPi2*constantAlpha*interpol_F2*2*massProton*(-Q-getomega(Q2,W)*getomega	(Q2,W))/
+		//				(getomega(Q2,W)*(-Q)*(2*getomega(Q2,W)*massProton-Q)))-Gt;
+		
 
 		double Gl=Gt*0.2;	
 
@@ -1265,7 +1501,7 @@ double Sigma::getCS_fit(double Ebeam, double Q, double Qmax,double W,
 
 		return G/G_max;
 	}
-
+*/
 		double Sigma::check_input_param(double Q,double W, double Ebeam){
 			double a=W;
 			if ((Q<2)||(W<porog_ch(type_chanel))||(W>5.000000001)){return 0;}
@@ -1620,6 +1856,8 @@ double Sigma::anti_Fit(double fi, double p0,double p1,double p2, int val){//anti
 	cout<<"incorrect param anti_fit"<<endl;
 	return 0;
 }
+
+//ERROR int 3-30 apperas if I run  W_test and Q2 test
 double Sigma::cos_in(int sp, double cos,double fi, int type){
 	for (int i=sp;_W[i]==_W[sp];i++){
 		if (abs(cos-_cos[i])<0.01) {// cout<<" ct=1 "; 
@@ -1632,10 +1870,12 @@ double Sigma::cos_in(int sp, double cos,double fi, int type){
 			return lin_interp(cos,_cos[i],_cos[i+1],anti_Fit(fi,_p0[i],_p1[i],_p2[i],type),anti_Fit(fi,_p0[i+1],_p1[i+1],_p2[i+1],type));
 		}
 	}
+	/*
 	cout<<"ERROR int 3-30"<<" cos: "<<cos<<" fi: "<<fi<<" int_sp: "<<sp<<endl; 
 	for (int i=sp;_W[i]==_W[sp];i++){
 			cout<<"cos: "<<cos<<" _cos["<<i<<"]: "<<_cos[i]<<" Q[i]: "<<_Q2[i]<<" W[i]: "<<_W[i]<<" _p0[i] "<<_p0[i]<<endl;
 	}
+	*/
 	return 0;
 }
 double Sigma::W_in(int sp,double W, double cos,double fi, int type){
