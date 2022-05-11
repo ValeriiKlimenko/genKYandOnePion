@@ -310,14 +310,14 @@ void getLdecayProd(TLorentzVector &PL,
    Ppim.SetTheta(thetapim);
    Ppim.SetPhi(phipim);
         
-	
+	/*
    
         cout << " SSSS " <<  Ppfin.E() + Ppim.E() << " " << endl;
 
 	cout << " EECMS " <<  Ppfin.E() << " " <<  Ppim.E() << " " << endl;
 	cout << " PPCMS " <<  Ppfin.Vect().Mag() << " " <<  Ppim.Vect().Mag() << " " << endl;
 	cout << " MMCMS " <<  Ppfin.M() << " " <<  Ppim.Mag() << " " << endl;
-	 
+	 */
 	 
    // boost to the PL lab frame.
    double vx = PL.Px()/PL.E();
@@ -378,8 +378,64 @@ void getSdecayProd(TLorentzVector &PS, TLorentzVector &PL,
    //prnLV(" Pg+Ppr+Ppi ", (Pgam+Ppfin+Ppim)); 
    //cout <<" MMM "<< PS.M() <<" "<<PL.M()<<" "<<Pgam.M()<<" "<<Ppfin.M()<<" "<<Ppim.M()<< endl; 
    
- 
 }
+
+
+// K-, proton
+void getL_1520_decayProd(TLorentzVector &PL,
+                   TLorentzVector &Ppfin, TLorentzVector &Pkmin, TRandom* gRandom) {
+
+   //4-momenta Ppfin and Pkmin in PL rest frame
+   //Set energy components
+   double mL=massLambda1520;
+   Ppfin.SetXYZT(1.,1.,1.,(mL*mL+massProton2-massKaon2)/2./mL);
+   Pkmin.SetXYZT (1.,1.,1.,(mL*mL+massKaon2-massProton2)/2./mL);
+   
+   //Set momentum muduli and angles
+   Ppfin.SetRho(sqrt(Ppfin.E()*Ppfin.E()-massProton2));
+   Pkmin.SetRho (sqrt(Pkmin.E()*Pkmin.E()  - massKaon2));
+   
+   // pim means Pkmin, I forgot to change it
+   double cost      = randomIntvTR(-1., 1., gRandom);
+   double thetapfin = acos(cost);
+   double phipfin   = randomIntvTR(0.0, 2.*constantPi, gRandom);
+   double thetapim = constantPi-thetapfin;
+   double phipim   = phipfin+constantPi; if(phipim>2.*constantPi) phipim=phipim-2.*constantPi;
+   Ppfin.SetTheta(thetapfin);
+   Ppfin.SetPhi(phipfin);
+   Pkmin.SetTheta(thetapim);
+   Pkmin.SetPhi(phipim);
+        
+	
+   /*
+    cout << " SSSS " <<  Ppfin.E() + Ppim.E() << " " << endl;
+
+	cout << " EECMS " <<  Ppfin.E() << " " <<  Ppim.E() << " " << endl;
+	cout << " PPCMS " <<  Ppfin.Vect().Mag() << " " <<  Ppim.Vect().Mag() << " " << endl;
+	cout << " MMCMS " <<  Ppfin.M() << " " <<  Ppim.Mag() << " " << endl;
+	*/
+	 
+   // boost to the PL lab frame.
+   double vx = PL.Px()/PL.E();
+   double vy = PL.Py()/PL.E();
+   double vz = PL.Pz()/PL.E();
+   Ppfin.Boost(vx,vy,vz);
+   Pkmin.Boost (vx,vy,vz);
+	//cout << " PPLAB " <<  Ppfin.Vect().Mag() << " " <<  Ppim.Vect().Mag() << " " << endl;
+
+ 	//cout << " PPLAB " <<  Ppfin.Vect().Z() << " " <<  Ppim.Vect().Z() << " " << endl;
+  
+
+
+   //Ppfin.SetXYZT(0.1,0.1,0.1,(mL*mL+massProton2-massPion2)/2./mL);
+   //Ppim.SetXYZT (0.1,0.1,0.1,(mL*mL+massPion2-massProton2)/2./mL);
+   //Ppfin.Boost(vx,vy,vz);
+   //Ppim.Boost (vx,vy,vz);
+ 
+   //cout << " PPBOOST " <<  Ppfin.Vect().Mag() << " " <<  Ppim.Vect().Mag() << " " << endl;
+
+}
+
 
 double inline num_chanel(string type)
 {

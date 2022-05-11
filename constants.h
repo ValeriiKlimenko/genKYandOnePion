@@ -26,6 +26,8 @@ const int lundIdPiZero    = 111;
 const int lundIdPiMinus   = -211;
 const int lundIdGamma     = 22;
 const int lundIdKaonPlus  = 321;
+const int lundIdKaonMinus  = -321;
+
 const int lundIdLambda    = 3122;
 const int lundIdSigmaZero = 3212;
 

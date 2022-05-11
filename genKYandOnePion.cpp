@@ -37,10 +37,10 @@ int main(int argc, char *argv[]) {
 
   int channel;
 	string channelName="KLambda", outputFileName="genKYandOnePion.dat",dataPath;
-	double Ebeam=24., Q2min=2., Q2max=20., Wmin=1., Wmax=4.,V_z_min=0.,V_z_max=0.;
+	double Ebeam=10.6, Q2min=2., Q2max=12., Wmin=1.05, Wmax=2.7,V_z_min=0.,V_z_max=0.;
 	double target_diameter = 0.;
-	bool isLam1520 = false;
-	int nEventMax = 100000;
+	bool isLam1520 = false, isDec = false;
+	int nEventMax = 10000;
 	
 	auto time = std::chrono::system_clock::now();
 	std::chrono::microseconds ms =
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
     double jr, mr, gr, a12, a32, s12, onlyres;
     
   
-    char* short_options = (char*)"a:b:c:d:e:f:g:h:i:j:k:l:p:r:s::";
+    char* short_options = (char*)"a:b:c:d:e:f:g:h:i:j:k:l:p:r:s:t::";
     const struct option long_options[] = {
         {"channel",required_argument,NULL,'a'},
         {"ebeam",required_argument,NULL,'b'},
@@ -66,6 +66,7 @@ int main(int argc, char *argv[]) {
         {"docker",optional_argument,NULL,'p'},
         {"seed",optional_argument,NULL,'r'},
         {"lambda1520",optional_argument,NULL,'s'},
+        {"decay",optional_argument,NULL,'t'},
         {NULL,0,NULL,0}
     };
 
@@ -250,6 +251,20 @@ int main(int argc, char *argv[]) {
 					}
 				break;
 			};
+			case 't': {
+				if (optarg!=NULL){
+					string strDecay = (string)optarg;
+					if (strDecay == "yes"){
+						isDec = true;
+						cout<<" (e, K+, p, pi-, (gamma)) are the final state particles in the output file. Particles depen on channel. Lambda/Sigma0 decay is simulated with the phase space approximation "<<endl;
+					}
+					
+				}
+				else{
+					}
+				break;
+			};
+			
 			
 			case '?': default: {
 				printf("found unknown option\n");
@@ -376,7 +391,7 @@ int main(int argc, char *argv[]) {
 	if (check_in_data==0) {return 0;}
 
 	// initilize event generator
-	evGenerator eg(dataPath,channelName_for_test, Ebeam,  Q2min, Q2max, Wmin, Wmax, rand_start, isLam1520);
+	evGenerator eg(dataPath,channelName_for_test, Ebeam,  Q2min, Q2max, Wmin, Wmax, rand_start, isLam1520, isDec);
 	channel=num_chanel(channelName_for_test);
 
         cout << endl
@@ -405,7 +420,7 @@ int main(int argc, char *argv[]) {
 		
 	  // get event. 4-moeg_ky/menta of final state particle. 
 	  // Values of Q2 and W are also returned.  
-          eg.getEvent(Q2, W, Pefin, PK, PL);//, Ppfin, Ppim, Pgam);
+          eg.getEvent(Q2, W, Pefin, PK, PL, Ppfin, Ppim, Pgam);
 
 
           // output in lund format
@@ -431,8 +446,12 @@ int main(int argc, char *argv[]) {
 	 	vy_event = rad*sin(angle);
 	 }
 	  
-	  
-	output << ( (pion_decay) ? "4" : "3") << " 1 1 0 0 0 0 "
+	 int nParticles = 3;
+	 if (pion_decay && channel==3) nParticles = 4;
+	 if (isDec && channel== 2) nParticles = 5;
+	 if ((isDec || isLam1520) && channel==1) nParticles = 4;
+	 
+	output << nParticles << " 1 1 0 0 0 0 "
 	   <<" "<< W <<" "<< Q2 <<" "<< getomega(Q2, W) 
 		 << endl;
 	  // electron
@@ -454,17 +473,55 @@ int main(int argc, char *argv[]) {
 	    << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
 	    << endl;
 	    
-	    double tmpMass = (isLam1520) ? massLambda1520 : massLambda;
-	    string strMass = to_string(tmpMass).substr(0, 6);
+	    
+	    // No decay L 1.1:
+	    if (!isDec && !isLam1520){
+	    	output 
+			<< "3 0 1 " << lundIdLambda << " 0 0 "
+			<< PL.Px() <<" "<< PL.Py() <<" "<< PL.Pz() 
+			<<" "<< PL.E() <<" " <<  to_string(massLambda).substr(0, 6)
+			<< " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
+			<< endl;
+	    }
+	    
+	    
+	    // Decay L 1.1:
+	     if (isDec && !isLam1520){
+	    	output 
+	    	
+	    	<< "3 1 1 " << lundIdProton << " 0 0 "
+		   	<< Ppfin.Px() <<" "<< Ppfin.Py() <<" "<< Ppfin.Pz() 
+		   	<<" "<< Ppfin.E() <<" 0.9383"
+		   	<< " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
+		   	<< endl;
+		   	
+			  output 
+		   	<< "4 -1 1 " << lundIdPiMinus << " 0 0 "
+		   	<< Ppim.Px() <<" "<< Ppim.Py() <<" "<< Ppim.Pz() 
+		   	<<" "<< Ppim.E() <<" 0.1396"
+		   	<< " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
+		   	<< endl;
 
-	  output 
-	   // << "3 0 1 " << lundIdSigmaZero << " 0 0 "
-		<< "3 0 1 " << lundIdLambda << " 0 0 "
-	    << PL.Px() <<" "<< PL.Py() <<" "<< PL.Pz() 
-	    <<" "<< PL.E() <<" " << strMass
-	   // <<" 0 0 0 "
-	    << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
-	    << endl;
+	    }
+	    
+	    // Decay L 1.520:
+	    if (!isDec && isLam1520){
+	    	output
+	    	<< "3 1 1 " << lundIdProton << " 0 0 "
+		   	<< Ppfin.Px() <<" "<< Ppfin.Py() <<" "<< Ppfin.Pz() 
+		   	<<" "<< Ppfin.E() <<" 0.9383"
+		   	<< " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
+		   	<< endl;
+		   	
+			  output 
+		   	<< "4 -1 1 " << lundIdKaonMinus << " 0 0 "
+		   	<< Ppim.Px() <<" "<< Ppim.Py() <<" "<< Ppim.Pz() 
+		   	<<" "<< Ppim.E() << to_string(massKaon).substr(0, 6)
+		   	<< " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
+		   	<< endl;
+	    
+	    }
+
 	}
 
 	if (channel==2){
@@ -476,7 +533,8 @@ int main(int argc, char *argv[]) {
 	   // <<" 0 0 0 "
 	    << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
 	    << endl;
-
+	    
+		if (!isDec){
 	  output 
 	    << "3 0 1 " << lundIdSigmaZero << " 0 0 "
 	    << PL.Px() <<" "<< PL.Py() <<" "<< PL.Pz() 
@@ -484,6 +542,27 @@ int main(int argc, char *argv[]) {
 	   // <<" 0 0 0 "
 	    << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
 	    << endl;
+	    } else{
+	    
+	    	  output 
+		   	<< "3 1 1 " << lundIdProton << " 0 0 "
+		   	<< Ppfin.Px() <<" "<< Ppfin.Py() <<" "<< Ppfin.Pz() 
+		   	<<" "<< Ppfin.E() <<" 0.9383"
+		   	<< " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
+		   	<< endl;
+			  output 
+		   	<< "4 -1 1 " << lundIdPiMinus << " 0 0 "
+		   	<< Ppim.Px() <<" "<< Ppim.Py() <<" "<< Ppim.Pz() 
+		   	<<" "<< Ppim.E() <<" 0.1396"
+		   	<< " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
+		   	<< endl;
+			  output 
+		   	<< "5  0 1 " << lundIdGamma << " 0 0 "
+		   	<< Pgam.Px() <<" "<< Pgam.Py() <<" "<< Pgam.Pz() 
+		   	<<" "<< Pgam.E() <<" 0."
+		   	<< " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
+		   	<< endl;
+	    }
 	}
 
 	if (channel==3){

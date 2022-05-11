@@ -15,6 +15,8 @@
 class evGenerator {
 
   string type;
+  bool isDecay = false;
+  bool isL1520 = false;
   double m1;
   double m2;  
   double Ebeam;
@@ -28,10 +30,9 @@ class evGenerator {
   
   // get random number in the interval [min, max].
   double inline randomIntv(double min, double max){
-
-  return gRandom->Uniform(min, max);
+    return gRandom->Uniform(min, max);
   //return min + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(max-min)));
-};
+  };
 	
   Sigma  *model;
 
@@ -44,12 +45,16 @@ public:
 
 evGenerator(string dataPath, string t, double E, 
             double q2min, double q2max,
-	    double wmin,  double wmax, unsigned long long rand_start, bool isL1520,
+	    double wmin,  double wmax, unsigned long long rand_start, bool isL1520_ch, bool isDec,
 		//double cosmin,  double cosmax,//only for test
 	    double jr=-1, double mr=0, double gr=0, 
             double a12=0., double a32=0., double s12=0., 
 	    int onlyres=0)
   {
+  
+  isL1520 = isL1520_ch;
+  
+  isDecay = isDec;
   
   gRandom->SetSeed(rand_start);
   type = t;
@@ -132,8 +137,8 @@ evGenerator(string dataPath, string t, double E,
 // 4 momenta of 
 
 void getEvent(double &Q2, double &W, 
-              TLorentzVector &Pefin, TLorentzVector &PK, TLorentzVector &PY)//,
-	   //   TLorentzVector &Ppfin, TLorentzVector &Ppim, TLorentzVector &Pgam) //only for test
+              TLorentzVector &Pefin, TLorentzVector &PK, TLorentzVector &PY,
+	      TLorentzVector &Ppfin, TLorentzVector &Ppim, TLorentzVector &Pgam) 
 										{
 
   int nTry=0;
@@ -186,8 +191,26 @@ void getEvent(double &Q2, double &W,
        
        // 4-momenta of K and Lambda/Sigma //проверить м1 и м2
        cms2lab(W, Q2, phi, Ebeam, thetaK, phiK, m1, m2, PK, PY);     
-
        
+       
+
+
+       // Decay of Lambda into proton and pi minus. 
+       if(type == "KLambda" && isDecay) {
+	 		getLdecayProd(PY, Ppfin, Ppim, gRandom);
+	 	}
+       if(type == "KSigma" && isDecay) {
+       // Decay of Sigma into proton and pi minus and gamma. 
+         TLorentzVector PL;
+         getSdecayProd(PY, PL, Ppfin, Ppim, Pgam, gRandom);
+       }
+       
+       if(type == "KLambda" && isL1520) {
+       // Decay of Sigma into proton and pi minus and gamma. 
+         getL_1520_decayProd(PY, Ppfin, Ppim, gRandom);
+       }
+       
+
        //cout << " PY " << PY.E() <<" "<< PY.Px() <<" "<< PY.Py() <<" "<< PY.Pz() << endl; 
        //cout << " PS " << (Ppfin+Ppim).E() <<" "<< (Ppfin+Ppim).Px() <<" "<< (Ppfin+Ppim).Py() <<" "<< (Ppfin+Ppim).Pz() << endl; 
        //cout << " PK " << (PK).E() <<" "<< (PK).Px() <<" "<< (PK).Py() <<" "<< (PK).Pz() << endl; 
