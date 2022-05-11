@@ -36,8 +36,6 @@ Pi0P - EG will generate e,p,pi0
 
 Pi0P_2g is Pi0P with pi0 decay, EG will generate e,p,g,g
 
---lambda1520=yes It works only for "KLambda" channel. It sets Lambda mass = 1518.8 MeV (default masss is 1115.683 MeV)
-
 --ebeam is Ebeam that should be >0 and less than 30GeV (Energy of the beam) (default value is 10.6 GeV)
 
 --q2min is Q2 min in GeV2 is more than 0.01 and less than 30 GeV2 (default value is 0.05 GeV2)
