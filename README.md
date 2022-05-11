@@ -38,7 +38,7 @@ Pi0P_2g is Pi0P with pi0 decay, EG will generate e,p,g,g
 
 --ebeam is Ebeam that should be >0 and less than 30GeV (Energy of the beam) (default value is 10.6 GeV)
 
---q2min is Q2 min in GeV2 is more than 0.01 and less than 30 GeV2 (default value is 0.05 GeV2)
+--q2min is Q2 min in GeV2 is more than 0.01 and less than 30 GeV2 (default value is 2 GeV2)
 
 --q2max is Q2 min in GeV2 >0.01 and less then 30 GeV2 (default value is 5 GeV2)
 This is the range in Q2, where the events will be generated.
