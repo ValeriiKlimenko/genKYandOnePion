@@ -25,7 +25,7 @@
 #include <TRandom3.h>
 #include <TRandomGen.h>
 #include <sys/time.h>
-
+#include <TF1.h>
 
 #include <chrono>
 #include <ctime> 
@@ -33,9 +33,12 @@
 using namespace std;
 
 
+
 int main(int argc, char *argv[]) {
 
-  int channel;
+
+
+    int channel;
 	string channelName="KLambda", outputFileName="genKYandOnePion.dat",dataPath;
 	double Ebeam=10.6, Q2min=2., Q2max=12., Wmin=1.05, Wmax=2.7,V_z_min=0.,V_z_max=0.;
 	double target_diameter = 0.;
@@ -256,7 +259,7 @@ int main(int argc, char *argv[]) {
 					string strDecay = (string)optarg;
 					if (strDecay == "yes"){
 						isDec = true;
-						cout<<" (e, K+, p, pi-, (gamma)) are the final state particles in the output file. Particles depen on channel. Lambda/Sigma0 decay is simulated with the phase space approximation "<<endl;
+						cout<<" (e, K+, p, pi-) are the final state particles in the output file."<<endl;
 					}
 					
 				}
@@ -356,7 +359,7 @@ int main(int argc, char *argv[]) {
 	cout << "max value: " <<  max_llint << endl;
 	*/
 	
-	cout << " Ebeam is " << Ebeam << " Gev"<<endl;
+	cout << "\n Ebeam is " << Ebeam << " Gev"<<endl;
 	cout << " Q2min is " << Q2min << " Gev2"<<endl;
 	cout << " Q2max is " << Q2max << " Gev2"<<endl;
 	cout << " Wmin is " << Wmin << " Gev"<<endl;
@@ -403,9 +406,9 @@ int main(int argc, char *argv[]) {
 	     << "   Number of events " << nEventMax << endl; 
 	     if (channelName_for_test == "KLambda"){
 	     	if(isLam1520) cout << " Lam is Lam(1520), mass: "<< massLambda1520 << endl;
-	     	else cout << " Lam mass: "<< massLambda << endl;
-	     
+	     	else cout << " Lambda mass: "<< massLambda << " GeV" << endl;
 	     }
+	     if(isDec) cout <<"decay = yes" << endl;
 	     
  
         // 4-momenta of final electron, Kaon and Lambda, proton, pi- in LAB frame
@@ -418,9 +421,7 @@ int main(int argc, char *argv[]) {
 	// Loop through events
         for (int i=0; i<nEventMax; i++) {	
 		
-	  // get event. 4-moeg_ky/menta of final state particle. 
-	  // Values of Q2 and W are also returned.  
-          eg.getEvent(Q2, W, Pefin, PK, PL, Ppfin, Ppim, Pgam);
+
 
 
           // output in lund format
@@ -445,6 +446,11 @@ int main(int argc, char *argv[]) {
 	 	vx_event = rad*cos(angle);
 	 	vy_event = rad*sin(angle);
 	 }
+	 vector<double> v_prod = {vx_event, vy_event, vz_for_event};
+	 
+	 // get event. 4-moeg_ky/menta of final state particle. 
+	 // Values of Q2 and W are also returned.  
+     eg.getEvent(Q2, W, Pefin, PK, PL, Ppfin, Ppim, Pgam, v_prod);
 	  
 	 int nParticles = 3;
 	 if (pion_decay && channel==3) nParticles = 4;
@@ -462,6 +468,10 @@ int main(int argc, char *argv[]) {
 	   // <<" 0 0 0 "
 	    << " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
 	    << endl;
+	    
+/////////////////////////////////////////////////////////////////////
+/////////////////      KLambda //////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
 
 	if (channel==1){
 	  // Kaon+
@@ -492,14 +502,14 @@ int main(int argc, char *argv[]) {
 	    	<< "3 1 1 " << lundIdProton << " 0 0 "
 		   	<< Ppfin.Px() <<" "<< Ppfin.Py() <<" "<< Ppfin.Pz() 
 		   	<<" "<< Ppfin.E() <<" 0.9383"
-		   	<< " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
+		   	<< " "<<v_prod.at(0)<<" "<<v_prod.at(1)<<" "<<v_prod.at(2)<<" "
 		   	<< endl;
 		   	
 			  output 
 		   	<< "4 -1 1 " << lundIdPiMinus << " 0 0 "
 		   	<< Ppim.Px() <<" "<< Ppim.Py() <<" "<< Ppim.Pz() 
 		   	<<" "<< Ppim.E() <<" 0.1396"
-		   	<< " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
+		   	<< " "<<v_prod.at(0)<<" "<<v_prod.at(1)<<" "<<v_prod.at(2)<<" "
 		   	<< endl;
 
 	    }
@@ -523,7 +533,9 @@ int main(int argc, char *argv[]) {
 	    }
 
 	}
-
+/////////////////////////////////////////////////////////////////////
+/////////////////      KSigma  //////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
 	if (channel==2){
 
 	  output 
@@ -548,13 +560,13 @@ int main(int argc, char *argv[]) {
 		   	<< "3 1 1 " << lundIdProton << " 0 0 "
 		   	<< Ppfin.Px() <<" "<< Ppfin.Py() <<" "<< Ppfin.Pz() 
 		   	<<" "<< Ppfin.E() <<" 0.9383"
-		   	<< " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
+		   	<< " "<<v_prod.at(0)<<" "<<v_prod.at(1)<<" "<<v_prod.at(2)<<" "
 		   	<< endl;
 			  output 
 		   	<< "4 -1 1 " << lundIdPiMinus << " 0 0 "
 		   	<< Ppim.Px() <<" "<< Ppim.Py() <<" "<< Ppim.Pz() 
 		   	<<" "<< Ppim.E() <<" 0.1396"
-		   	<< " "<<vx_event<<" "<<vy_event<<" "<<vz_for_event<<" "
+		   	<< " "<<v_prod.at(0)<<" "<<v_prod.at(1)<<" "<<v_prod.at(2)<<" "
 		   	<< endl;
 			  output 
 		   	<< "5  0 1 " << lundIdGamma << " 0 0 "

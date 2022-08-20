@@ -286,8 +286,86 @@ void lab2cms(double Q2, double Ebeam,
  };
 
 
+// Rafo's L decay:
+void DecayLambda(TLorentzVector &L_Lambda, vector <double>& v_prod, TLorentzVector &L_prot, TLorentzVector & L_pim, TRandom3* rand3){
+
+    const double M_Lambda = 1.115683; // mass in GeV
+    const double cTau = 7.89; // cm
+
+    const double Mp = 0.9383;
+    const double Mpi = 0.13957039;
+
+    // proton energy in CM frame
+    double Ep = (M_Lambda * M_Lambda - Mpi * Mpi + Mp * Mp) / (2 * M_Lambda); // pdg eq (47.16)
+
+    double p = sqrt(Ep * Ep - Mp * Mp); // momentum of particles in Lambda CM
+
+    double Epi = sqrt(Mpi * Mpi + p * p); // Pion Energy
+
+    
+    // ========= decaying izotropically ===================
+    double cosTh = rand3->Uniform(-1., 1.);
+    double sinTh = sqrt(1. - cosTh * cosTh);
+    double phi = rand3->Uniform(0., 2 * TMath::Pi());
+
+    // ============= Setting proton 4 vector
+    L_prot.SetPxPyPzE(p * sinTh * cos(phi), p * sinTh * sin(phi), p*cosTh, Ep);
+    // ==== Bringing to the Lab frame
+    L_prot.Boost(L_Lambda.BoostVector());
+    // ============= Setting pim 4 vector
+    L_pim.SetPxPyPzE(-p * sinTh * cos(phi), -p * sinTh * sin(phi), -p*cosTh, Epi);
+    // ==== Bringing to the Lab frame
+    L_pim.Boost(L_Lambda.BoostVector());
+
+    // ====== distance traveled 
+    //double l = rand3->PoissonD(cTau*L_Lambda.Gamma() );
+    //f_Poisson->SetParameter(0, cTau*L_Lambda.Gamma());
+    //double l = f_Poisson->GetRandom(0., 45);
+    double l = rand3->Exp(cTau*L_Lambda.Gamma()*L_Lambda.Beta());
+
+    // ====== New positions x(y,z) = prod_positrion_X(y,z) = l*PX(Y,Z)_Lambda/P_Lambda
+    //vector<double> vert;
+    v_prod.at(0) = (v_prod.at(0) + l * L_Lambda.Px() / L_Lambda.P());
+    v_prod.at(1) = (v_prod.at(1) + l * L_Lambda.Py() / L_Lambda.P());
+    v_prod.at(2) = (v_prod.at(2) + l * L_Lambda.Pz() / L_Lambda.P());
+
+   // cout<<" ====================== Inside the Function =================== "<<endl;
+  //  cout<<"=== 4 Momenta = ("<<L_Lambda.Px()<<","<<L_Lambda.Py()<<","<<L_Lambda.Pz()<<","<<L_Lambda.E()<<")"<<endl;
+  //  cout<<"===== V_Prot = ("<<v_prod.at(0)<<","<<v_prod.at(1)<<","<<v_prod.at(2)<<")"<<endl;
+  //  cout<<"==== V_Decay = ("<<vert.at(0)<<","<<vert.at(1)<<","<<vert.at(2)<<")"<<endl;
+  //  cout<<" ==== GAMMA = "<<L_Lambda.Gamma()<<endl;
+  //  cout<<" ==== l = "<<l<<endl;
+    
+}
+
+void DecaySigma(TLorentzVector &L_Sigma, TLorentzVector &L_Lambda, TLorentzVector &L_gamma, TRandom3* rand3) {
+    const double M_Sigma = 1.1925; // mass in GeV
+    const double M_Lambda = 1.115683; // mass in GeV
+
+    double ELambda = (M_Sigma * M_Sigma + M_Lambda * M_Lambda) / (2 * M_Sigma);
+    double EGamma = (M_Sigma * M_Sigma - M_Lambda * M_Lambda) / (2 * M_Sigma);
+    double p = EGamma;
+
+    // ========= decaying izotropically ===================
+    double cosTh = rand3->Uniform(-1., 1.);
+    double sinTh = sqrt(1. - cosTh * cosTh);
+    double phi = rand3->Uniform(0., 2 * TMath::Pi());
+
+    // ============= Setting proton 4 vector
+    L_Lambda.SetPxPyPzE(p * sinTh * cos(phi), p * sinTh * sin(phi), p*cosTh, ELambda);
+    // ==== Bringing to the Lab frame
+    L_Lambda.Boost(L_Sigma.BoostVector());
+    // ============= Setting Gamma 4 vector
+    L_gamma.SetPxPyPzE(-p * sinTh * cos(phi), -p * sinTh * sin(phi), -p*cosTh, EGamma);
+    // ==== Bringing to the Lab frame
+    L_gamma.Boost(L_Lambda.BoostVector());
+
+}
 
 
+// My version L decay is replaced by Rafo's version
+// my:
+/*
 void getLdecayProd(TLorentzVector &PL,
                    TLorentzVector &Ppfin, TLorentzVector &Ppim, TRandom* gRandom) {
 
@@ -310,14 +388,13 @@ void getLdecayProd(TLorentzVector &PL,
    Ppim.SetTheta(thetapim);
    Ppim.SetPhi(phipim);
         
-	/*
-   
-        cout << " SSSS " <<  Ppfin.E() + Ppim.E() << " " << endl;
 
-	cout << " EECMS " <<  Ppfin.E() << " " <<  Ppim.E() << " " << endl;
-	cout << " PPCMS " <<  Ppfin.Vect().Mag() << " " <<  Ppim.Vect().Mag() << " " << endl;
-	cout << " MMCMS " <<  Ppfin.M() << " " <<  Ppim.Mag() << " " << endl;
-	 */
+   
+    //cout << " SSSS " <<  Ppfin.E() + Ppim.E() << " " << endl;
+	//cout << " EECMS " <<  Ppfin.E() << " " <<  Ppim.E() << " " << endl;
+	//cout << " PPCMS " <<  Ppfin.Vect().Mag() << " " <<  Ppim.Vect().Mag() << " " << endl;
+	//cout << " MMCMS " <<  Ppfin.M() << " " <<  Ppim.Mag() << " " << endl;
+	
 	 
    // boost to the PL lab frame.
    double vx = PL.Px()/PL.E();
@@ -339,8 +416,8 @@ void getLdecayProd(TLorentzVector &PL,
    //cout << " PPBOOST " <<  Ppfin.Vect().Mag() << " " <<  Ppim.Vect().Mag() << " " << endl;
 
 }
-
-
+*/
+/*
 void getSdecayProd(TLorentzVector &PS, TLorentzVector &PL,
                    TLorentzVector &Ppfin, TLorentzVector &Ppim, TLorentzVector &Pgam, TRandom* gRandom) {
 
@@ -379,7 +456,7 @@ void getSdecayProd(TLorentzVector &PS, TLorentzVector &PL,
    //cout <<" MMM "<< PS.M() <<" "<<PL.M()<<" "<<Pgam.M()<<" "<<Ppfin.M()<<" "<<Ppim.M()<< endl; 
    
 }
-
+*/
 
 // K-, proton
 void getL_1520_decayProd(TLorentzVector &PL,

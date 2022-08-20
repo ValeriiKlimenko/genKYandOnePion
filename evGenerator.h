@@ -10,6 +10,11 @@
 #include "kinematics.h"
 //#include "sigmaKY.h"
 #include "sigmaValera.h"
+#include <TF1.h>
+#include <TMath.h>
+#include <TRandom3.h>
+#include <TRandomGen.h>
+#include <sys/time.h>
 
 
 class evGenerator {
@@ -26,6 +31,7 @@ class evGenerator {
   double Wmax;
   double d5sigmaMax;
   
+
   TRandom* gRandom = new TRandomMT64();
   
   // get random number in the interval [min, max].
@@ -40,8 +46,17 @@ class evGenerator {
   //double cos_max;//only for test
   
   int nEvent;
+  
 
 public:
+
+	// Rafo's Hyper. decay code:
+	TF1 *f_Poisson;
+	TRandom3* rand3 = new TRandom3();
+	//
+	
+
+
 
 evGenerator(string dataPath, string t, double E, 
             double q2min, double q2max,
@@ -64,6 +79,13 @@ evGenerator(string dataPath, string t, double E,
   Wmin = wmin;
   Wmax = wmax;
   nEvent = 0;
+  
+  	// Rafo intilization:
+	f_Poisson = new TF1("f_Poisson", "TMath::Poisson(x, [0])", 0., 50.);
+    f_Poisson->SetNpx(1000);
+    const std::string sLambdaPID = "3122";
+    rand3->SetSeed(rand_start);
+	//
 
   //cos_min=cosmin;//only for test
  // cos_max=cosmax;//only for test
@@ -138,7 +160,7 @@ evGenerator(string dataPath, string t, double E,
 
 void getEvent(double &Q2, double &W, 
               TLorentzVector &Pefin, TLorentzVector &PK, TLorentzVector &PY,
-	      TLorentzVector &Ppfin, TLorentzVector &Ppim, TLorentzVector &Pgam) 
+	      TLorentzVector &Ppfin, TLorentzVector &Ppim, TLorentzVector &Pgam, vector <double>& v_prodIN) 
 										{
 
   int nTry=0;
@@ -197,12 +219,15 @@ void getEvent(double &Q2, double &W,
 
        // Decay of Lambda into proton and pi minus. 
        if(type == "KLambda" && isDecay) {
-	 		getLdecayProd(PY, Ppfin, Ppim, gRandom);
+	 		//getLdecayProd(PY, Ppfin, Ppim, gRandom);
+	 		DecayLambda(PY, v_prodIN, Ppfin, Ppim, rand3);
 	 	}
        if(type == "KSigma" && isDecay) {
        // Decay of Sigma into proton and pi minus and gamma. 
          TLorentzVector PL;
-         getSdecayProd(PY, PL, Ppfin, Ppim, Pgam, gRandom);
+         //getSdecayProd(PY, PL, Ppfin, Ppim, Pgam, gRandom);
+         DecaySigma(PY, PL, Pgam, rand3);
+         DecayLambda(PL, v_prodIN, Ppfin, Ppim, rand3);
        }
        
        if(type == "KLambda" && isL1520) {
