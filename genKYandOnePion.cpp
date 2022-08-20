@@ -259,7 +259,7 @@ int main(int argc, char *argv[]) {
 					string strDecay = (string)optarg;
 					if (strDecay == "yes"){
 						isDec = true;
-						cout<<" (e, K+, p, pi-) are the final state particles in the output file."<<endl;
+						cout<<" e, K+, p, pi-, gamma(for KSigma) are the final state particles in the output file."<<endl;
 					}
 					
 				}
